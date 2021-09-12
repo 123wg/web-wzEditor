@@ -1,22 +1,23 @@
 <script>
 import {
-  defineComponent,
-} from 'vue'
+    defineComponent,
+} from 'vue';
+
 export default defineComponent({
-  name: 'ContextMenu',
-  computed:{
-    user(){
-      return this.$store.state.user.name
-    }
-  },
-  created(){
-    console.log(this.user)
-  }
-})
+    name: 'ContextMenu',
+    computed: {
+        user() {
+            return this.$store.state.user.name;
+        },
+    },
+    created() {
+        console.log(this.user);
+    },
+});
 </script>
 
 <template>
- 1111
+  <div>111</div>
 </template>
 
 <style scoped>
