@@ -6,11 +6,12 @@
 
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
 body,html {
     width: 100%;
     height: 100%;
     padding: 0;
     margin: 0;
+    overflow-x: hidden;
 }
 </style>
