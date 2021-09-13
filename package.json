@@ -8,6 +8,11 @@
   },
   "dependencies": {
     "sass": "^1.39.2",
+    "stylelint": "^13.13.1",
+    "stylelint-config-prettier": "^8.0.2",
+    "stylelint-config-standard": "^22.0.0",
+    "stylelint-order": "^4.1.0",
+    "stylelint-scss": "^3.20.1",
     "vue": "^3.2.6",
     "vue-router": "4",
     "vuex": "^4.0.2"
