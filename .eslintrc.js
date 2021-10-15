@@ -5,9 +5,15 @@ module.exports = {
         node: true,
     },
     extends: [
-    // 'plugin:vue/essential',
-        'plugin:vue/vue3-recommended',
+        // TODO 插件暂时注释 好像没有什么卵用
+        // 'plugin:vue/essential', // 现在不满足需求了
+        // 'plugin:vue/vue3-recommended',
+        // 'eslint:recommended',
+        'plugin:vue/vue3-essential',
         'airbnb-base',
+        // '@vue/airbnb',
+        // '@vue/airbnb',
+        // 'airbnb'
     ],
     parserOptions: {
         ecmaVersion: 12,

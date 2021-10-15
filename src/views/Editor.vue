@@ -29,11 +29,11 @@ export default defineComponent({
             return this.$store.state.editor.show_editor_plugin;
         },
     },
-    mounted() {
-        wzEditor = new WzEditor();
-    },
     created() {
         console.log('我才刚开始');
+    },
+    mounted() {
+        wzEditor = new WzEditor();
     },
 });
 </script>
