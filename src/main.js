@@ -1,5 +1,5 @@
 import { createApp } from 'vue';
-import bus from './common/EventBus';
+import bus from '@/common/EventBus';
 import App from './App.vue';
 import store from './store';
 import router from './router';

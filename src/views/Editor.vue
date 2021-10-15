@@ -9,6 +9,7 @@
 
 <script>
 import { defineComponent } from 'vue';
+import WzEditor from '@/common/wzEditor/WzEditor';
 import EditorMain from '@/components/EditorMain.vue';
 import EditorTool from '@/components/EditorTool.vue';
 import EditorMaterial from '@/components/EditorMaterial.vue';
@@ -24,7 +25,7 @@ export default defineComponent({
         },
     },
     mounted() {
-        // 编辑器初始化
+        wzEditor = new WzEditor();
     },
     data() {
         return {

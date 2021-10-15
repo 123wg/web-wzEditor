@@ -6,12 +6,12 @@
 
 import { createRouter, createWebHistory } from 'vue-router';
 
-const modulesFiles = import.meta.globEager('./modules/*.js');
-export const constantRouterComponents = [];
-Object.keys(modulesFiles).forEach((path) => {
-    const value = modulesFiles[path].default;
-    constantRouterComponents.push(...value);
-});
+// const modulesFiles = import.meta.globEager('./modules/*.js');
+// export const constantRouterComponents = [];
+// Object.keys(modulesFiles).forEach((path) => {
+//     const value = modulesFiles[path].default;
+//     constantRouterComponents.push(...value);
+// });
 
 // 异步路由引入
 // console.log(constantRouterComponents);

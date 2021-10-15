@@ -1,14 +1,18 @@
 module.exports = {
+    root: true,
     env: {
         browser: true,
         es2021: true,
         node: true,
     },
     extends: [
+        // TODO 插件暂时注释 好像没有什么卵用
         // 'plugin:vue/essential', // 现在不满足需求了
         // 'plugin:vue/vue3-recommended',
         'plugin:vue/vue3-essential',
-        'airbnb-base',
+        // 'airbnb-base',
+        // '@vue/airbnb',
+        'airbnb'
     ],
     parserOptions: {
         ecmaVersion: 12,
@@ -26,5 +30,8 @@ module.exports = {
         'vue/html-self-closing': 'off',
         'vue/comment-directive': 'off', // 解决html中eslint-disable的注释
         'no-param-reassign': ['error', { props: false }], // 修改函数参数
+    },
+    globals: {
+        wzEditor: true,
     },
 };
