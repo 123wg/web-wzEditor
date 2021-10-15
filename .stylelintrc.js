@@ -3,6 +3,7 @@ module.exports = {
     plugins: ['stylelint-order', 'stylelint-scss'],
     extends: ['stylelint-config-standard', 'stylelint-config-prettier'],
     rules: {
+      indentation: 4,
       'selector-pseudo-class-no-unknown': [
         true,
         {

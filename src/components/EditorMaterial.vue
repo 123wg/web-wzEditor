@@ -1,5 +1,7 @@
 <template>
-  <div>测试页面</div>
+    <div class="editor-material">
+        物料区
+    </div>
 </template>
 
 <script>
@@ -10,14 +12,12 @@ export default {
 
         };
     },
-    computed: {},
-    watch: {},
-    created() {},
-    mounted() {},
-    unmounted() {},
-    methods: {},
 };
 </script>
 <style lang='scss' scoped>
-//@import url(); 引入公共css类
+// 物料区
+.editor-material{
+    width: 300px;
+    background: #303131;
+}
 </style>

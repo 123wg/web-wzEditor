@@ -1,7 +1,5 @@
-## 框架搭建基础
-- vuex引入
-- vueRouter引入
-- css预编译
-- 环境配置
-- 代码规范(stylelint,eslint,bable)
-- UI库引入
+## 框架问题
+- 完善stylelint 校验
+- vuex分包管理 命名空间
+## 编辑器
+- 
