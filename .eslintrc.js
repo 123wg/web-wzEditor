@@ -1,18 +1,13 @@
 module.exports = {
-    root: true,
     env: {
         browser: true,
         es2021: true,
         node: true,
     },
     extends: [
-        // TODO 插件暂时注释 好像没有什么卵用
-        // 'plugin:vue/essential', // 现在不满足需求了
-        // 'plugin:vue/vue3-recommended',
-        'plugin:vue/vue3-essential',
-        // 'airbnb-base',
-        // '@vue/airbnb',
-        'airbnb'
+    // 'plugin:vue/essential',
+        'plugin:vue/vue3-recommended',
+        'airbnb-base',
     ],
     parserOptions: {
         ecmaVersion: 12,
@@ -22,6 +17,7 @@ module.exports = {
         'vue',
     ],
     rules: {
+        'no-var': 'error',
         'vue/html-indent': ['error', 4],
         indent: ['error', 4],
         'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off', // 生产环境关闭console
@@ -33,5 +29,20 @@ module.exports = {
     },
     globals: {
         wzEditor: true,
+    },
+    settings: {
+        'import/extensions': ['.js', '.jsx', 'ts', 'tsx'],
+        'import/resolver': {
+            node: {
+                extensions: ['.js', '.jsx', '.ts', '.tsx'], // 配置文件扩展名
+            },
+            // 配置alias
+            alias: {
+                map: [
+                    ['@', './src'],
+                ],
+                extensions: ['.js', '.jsx', '.ts', '.tsx'],
+            },
+        },
     },
 };

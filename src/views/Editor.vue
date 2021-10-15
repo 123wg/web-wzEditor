@@ -19,6 +19,11 @@ export default defineComponent({
     components: {
         EditorMain, EditorTool, EditorMaterial, EditorPlugin,
     },
+    data() {
+        return {
+
+        };
+    },
     computed: {
         show_editor_plugin() {
             return this.$store.state.editor.show_editor_plugin;
@@ -26,11 +31,6 @@ export default defineComponent({
     },
     mounted() {
         wzEditor = new WzEditor();
-    },
-    data() {
-        return {
-
-        };
     },
     created() {
         console.log('我才刚开始');
@@ -41,7 +41,7 @@ export default defineComponent({
 .editor-panel {
     position: relative;
     display: flex;
-    justify-content: space-between;
     height: calc(100% - 70px);
+    justify-content: space-between;
 }
 </style>
