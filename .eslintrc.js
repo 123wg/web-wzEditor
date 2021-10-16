@@ -32,6 +32,7 @@ module.exports = {
         'vue/html-self-closing': 'off',
         'vue/comment-directive': 'off', // 解决html中eslint-disable的注释
         'no-param-reassign': ['error', { props: false }], // 修改函数参数
+        'max-len': ['error', { code: 500 }],
     },
     globals: {
         wzEditor: true,

@@ -4,7 +4,7 @@
 * @Date: 2021-10-15 11:11:28
 **/
 <template>
-    <div class='editor-main'>我是中间核心区</div>
+    <div class='editor-main' id="editor-main"></div>
 </template>
 
 <script>
