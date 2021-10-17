@@ -8,25 +8,13 @@
             <div class="first-item">
                 建筑
             </div>
-            <div class="first-item">
-                水管
-            </div>
-            <div class="first-item">
-                水池
-            </div>
-            <div class="first-item">
-                风机
-            </div>
-            <div class="first-item">
-                提升泵
-            </div>
         </div>
         <!-- 右侧二级分类 -->
         <div class="material-two-level material-item">
             <div class="two-group">
                 <div class="group-title">第一个分组</div>
                 <div class="group-item-list">
-                    <div class="item" v-for="item in 18" :key="item" draggable="true" @dragstart="dragStart">
+                    <div class="item" v-for="item in 6" :key="item" draggable="true" @dragstart="dragStart">
                         模型{{item}}
                     </div>
                 </div>

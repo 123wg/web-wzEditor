@@ -5,6 +5,7 @@
 * */
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 
 export default class WzScene {
     constructor() {
@@ -22,6 +23,7 @@ export default class WzScene {
         this.init_refer_line();// 初始化参考线
         this.init_mouse_control();// 开启鼠标控制
         this.add_box();// FIXME  添加立方体 --测试完成后删除
+        this.add_gltf();
         // 监听拖放事件
     }
 
@@ -131,5 +133,14 @@ export default class WzScene {
         const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
         const cube = new THREE.Mesh(geometry, material);
         this.scene.add(cube);
+    }
+
+    add_gltf() {
+        const loader = new GLTFLoader();
+        loader.load('/static/model/matilda/scene.gltf', (gltf) => {
+            this.scene.add(gltf.scene);
+        }, undefined, (error) => {
+            console.error(error);
+        });
     }
 }
