@@ -39,8 +39,10 @@ export default class WzScene {
 
     init_camera() {
         const { width, height } = this.ele_target;
-        this.camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
-        this.camera.position.z = 5;
+        this.camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 100000);
+        this.camera.position.x = -26.927091840370167;
+        this.camera.position.z = 30.793487404966882;
+        this.camera.position.y = 19.578588807939695;
     }
 
     init_renderer() {
@@ -68,11 +70,26 @@ export default class WzScene {
     }
 
     init_sky() {
-
+        const loader = new THREE.CubeTextureLoader();
+        loader.setPath('/static/img/skybox/');
+        const pictures = ['right.jpg', 'left.jpg', 'top.jpg', 'bottom.jpg', 'front.jpg', 'back.jpg'];
+        const fun = () => new Promise((resolve) => {
+            loader.load(pictures, (t) => resolve(t));
+        });
+        fun().then((texture) => {
+            this.scene.background = texture;
+        });
     }
 
     init_refer_line() {
+        const size = 10000;
+        const divisions = 1000;
+        const gridHelper = new THREE.GridHelper(size, divisions);
+        console.log(gridHelper);
+        this.scene.add(gridHelper);
 
+        const axisHelper = new THREE.AxisHelper(5);
+        this.scene.add(axisHelper);
     }
 
     init_mouse_control() {
@@ -82,7 +99,7 @@ export default class WzScene {
 
     // FIXME 测试完成后删除
     add_box() {
-        const geometry = new THREE.BoxGeometry(1, 1, 1);
+        const geometry = new THREE.BoxGeometry(10, 10, 10);
         const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
         const cube = new THREE.Mesh(geometry, material);
         this.scene.add(cube);
