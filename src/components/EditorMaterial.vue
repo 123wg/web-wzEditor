@@ -2,8 +2,23 @@
     <div class="editor-material">
         <!-- 左侧一级菜单 -->
         <div class="material-first-level material-item">
-            <div class="first-item" v-for="item in 18" :key="item">
-                11
+            <div class="first-item">
+                交互
+            </div>
+            <div class="first-item">
+                建筑
+            </div>
+            <div class="first-item">
+                水管
+            </div>
+            <div class="first-item">
+                水池
+            </div>
+            <div class="first-item">
+                风机
+            </div>
+            <div class="first-item">
+                提升泵
             </div>
         </div>
         <!-- 右侧二级分类 -->
@@ -11,7 +26,7 @@
             <div class="two-group">
                 <div class="group-title">第一个分组</div>
                 <div class="group-item-list">
-                    <div class="item" v-for="item in 18" :key="item">
+                    <div class="item" v-for="item in 18" :key="item" draggable="true" @dragstart="dragStart">
                         模型{{item}}
                     </div>
                 </div>
@@ -27,6 +42,15 @@ export default {
         return {
 
         };
+    },
+    methods: {
+        dragStart(evt) {
+            const obj = {
+                aa: 11,
+            };
+            evt.dataTransfer.setData('11', JSON.stringify(obj));
+            console.log(JSON.parse(evt.dataTransfer.getData('11')));
+        },
     },
 };
 </script>
@@ -46,12 +70,12 @@ export default {
             height: 50px;
             line-height: 50px;
             text-align: center;
-            border: 1px solid red;
+            border: 1px solid rgba(151,151,151,0.21);
         }
     }
 
     .material-two-level {
-        width: calc(100% - 50px);
+        width: calc(100% - 48px);
 
         .two-group{
             .group-title{
@@ -71,6 +95,7 @@ export default {
                     margin-top: 5px;
                     line-height: 60px;
                     text-align: center;
+                    cursor: move;
                     border: 1px solid rgba(151,151,151,0.21);
                 }
             }

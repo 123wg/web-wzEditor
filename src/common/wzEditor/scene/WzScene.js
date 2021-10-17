@@ -22,10 +22,29 @@ export default class WzScene {
         this.init_refer_line();// 初始化参考线
         this.init_mouse_control();// 开启鼠标控制
         this.add_box();// FIXME  添加立方体 --测试完成后删除
+        // 监听拖放事件
     }
 
     get_element() {
         const target = document.getElementById('editor-main');
+        // FIXME 测试监听拖动事件 获取三维坐标中的位置
+        target.addEventListener('dragover', (evt) => {
+            const mouse = {};
+            const raycaster = new THREE.Raycaster();
+            evt.preventDefault();
+            const rect = this.renderer.domElement.getBoundingClientRect();
+            mouse.x = ((evt.clientX - rect.left) / rect.width) * 2 - 1;
+            mouse.y = -((evt.clientY - rect.top) / rect.height) * 2 + 1;
+            raycaster.setFromCamera(mouse, this.camera); // 通过摄像机和鼠标位置更新射线
+            const intersection = new THREE.Vector3();
+            const Plane = new THREE.Plane(new THREE.Vector3(0, 1, 0));
+            if (raycaster.ray.intersectPlane(Plane, intersection)) {
+                console.log('坐标');
+                console.log(intersection);
+                // 创建小球
+            }
+        });
+
         this.ele_target = {
             obj: target,
             width: target.clientWidth,
@@ -84,12 +103,10 @@ export default class WzScene {
     init_refer_line() {
         const size = 10000;
         const divisions = 1000;
-        const gridHelper = new THREE.GridHelper(size, divisions);
-        console.log(gridHelper);
-        this.scene.add(gridHelper);
-
-        const axisHelper = new THREE.AxisHelper(5);
-        this.scene.add(axisHelper);
+        this.gridHelper = new THREE.GridHelper(size, divisions);
+        console.log('辅助线');
+        console.log(this.gridHelper);
+        this.scene.add(this.gridHelper);
     }
 
     init_mouse_control() {
