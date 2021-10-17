@@ -7,6 +7,7 @@
     "serve": "vite preview"
   },
   "dependencies": {
+    "element-plus": "^1.1.0-beta.20",
     "sass": "^1.39.2",
     "stylelint": "^13.13.1",
     "stylelint-config-prettier": "^8.0.2",
