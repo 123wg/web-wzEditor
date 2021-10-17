@@ -37,11 +37,22 @@ export default class WzScene {
             mouse.y = -((evt.clientY - rect.top) / rect.height) * 2 + 1;
             raycaster.setFromCamera(mouse, this.camera); // 通过摄像机和鼠标位置更新射线
             const intersection = new THREE.Vector3();
-            const Plane = new THREE.Plane(new THREE.Vector3(0, 1, 0));
+            const Plane = new THREE.Plane(new THREE.Vector3(0, -1, 0), 0);
             if (raycaster.ray.intersectPlane(Plane, intersection)) {
-                console.log('坐标');
-                console.log(intersection);
-                // 创建小球
+                // console.log('坐标');
+                // console.log(intersection);
+                // const geometry = new THREE.CircleGeometry(1);
+                // const material = new THREE.MeshBasicMaterial({ color: 0xffff00 });
+                // const circle = new THREE.Mesh(geometry, material);
+                // circle.position.copy(intersection);
+                // circle.position.y = 10;
+                // circle.rotateX(Math.PI / 2);
+                // this.scene.add(circle);
+                const geometry = new THREE.BoxGeometry(2, 2, 2);
+                const material = new THREE.MeshBasicMaterial({ color: 0xFFB6C1 });
+                const cube = new THREE.Mesh(geometry, material);
+                cube.position.copy(intersection);
+                this.scene.add(cube);
             }
         });
 
