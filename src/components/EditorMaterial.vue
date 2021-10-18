@@ -2,52 +2,21 @@
     <div class="editor-material">
         <!-- 左侧一级菜单 -->
         <div class="material-first-level material-item">
-            <div class="first-item" v-for="item in 18" :key="item">
-                交互
+            <div class="first-item" v-for="(item,index) in material_list" :key="index">
+                {{item.label}}
             </div>
         </div>
         <!-- 右侧二级分类 -->
         <div class="material-two-level material-item">
             <div class="two-group">
-                <!-- <div class="group-title"></div> -->
                 <el-collapse accordion v-model="curActive">
-                    <el-collapse-item name="1">
+                    <el-collapse-item v-for="(item,index) in material_list[0].children" :name="index" :key="index">
                         <template #title>
-                            交互
+                            {{item.group}}
                         </template>
                         <div class="group-item-list">
-                            <div class="item" v-for="item in 6" :key="item" draggable="true" @dragstart="dragStart">
-                                模型{{item}}
-                            </div>
-                        </div>
-                    </el-collapse-item>
-                    <el-collapse-item name="2">
-                        <template #title>
-                            建筑
-                        </template>
-                        <div class="group-item-list">
-                            <div class="item" v-for="item in 6" :key="item" draggable="true" @dragstart="dragStart">
-                                模型{{item}}
-                            </div>
-                        </div>
-                    </el-collapse-item>
-                    <el-collapse-item name="3">
-                        <template #title>
-                            风机
-                        </template>
-                        <div class="group-item-list">
-                            <div class="item" v-for="item in 6" :key="item" draggable="true" @dragstart="dragStart">
-                                模型{{item}}
-                            </div>
-                        </div>
-                    </el-collapse-item>
-                    <el-collapse-item name="4">
-                        <template #title>
-                            水池
-                        </template>
-                        <div class="group-item-list">
-                            <div class="item" v-for="item in 6" :key="item" draggable="true" @dragstart="dragStart">
-                                模型{{item}}
+                            <div class="item" v-for="(items,indexs) in item.children" :key="indexs" draggable="true" @mousedown="create_model(items)">
+                                <img :src="items.img_url">
                             </div>
                         </div>
                     </el-collapse-item>
@@ -58,20 +27,39 @@
 </template>
 
 <script>
+import bus from '@/common/EventBus';
+
 export default {
     components: {},
     data() {
         return {
-            curActive: '1',
+            curActive: 0,
+            material_list: [
+                {
+                    label: '人物',
+                    children: [
+                        {
+                            group: '美少女',
+                            children: [
+                                {
+                                    img_url: '/static/img/matilda.png',
+                                    model_url: '/static/model/matilda/scene.gltf',
+                                    name: '小萝莉',
+                                },
+                            ],
+                        },
+                    ],
+                },
+            ],
         };
     },
     methods: {
-        dragStart(evt) {
-            const obj = {
-                aa: 11,
-            };
-            evt.dataTransfer.setData('11', JSON.stringify(obj));
-            console.log(JSON.parse(evt.dataTransfer.getData('11')));
+        create_model(obj) {
+            console.log('开始创建模型');
+            console.log(bus);
+            bus.$emit('create_model', obj);
+            // evt.dataTransfer.setData('model_info', JSON.stringify(obj));
+            // console.log(JSON.parse(evt.dataTransfer.getData('model_info')));
         },
     },
 };
@@ -130,6 +118,11 @@ export default {
                     text-align: center;
                     cursor: move;
                     border: 1px solid rgba(151,151,151,0.21);
+
+                    img {
+                        width: 100%;
+                        height: 100%;
+                    }
                 }
             }
         }

@@ -6,6 +6,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+import bus from '@/common/EventBus';
 
 export default class WzScene {
     constructor() {
@@ -17,47 +18,20 @@ export default class WzScene {
         this.init_scene();//  初始化场景
         this.init_camera();//  初始化相机
         this.init_renderer();//  初始化渲染器
+        // this.init_light(); //  FIXME 初始化灯光，好像没啥用 不知道是不是使用背景贴图的原因
         this.start_render();//  执行渲染方法
         this.on_resize();//  窗口自适应
         this.init_sky(); // 初始化天空盒
         this.init_refer_line();// 初始化参考线
         this.init_mouse_control();// 开启鼠标控制
-        this.add_box();// FIXME  添加立方体 --测试完成后删除
+        // this.add_box();// FIXME  添加立方体 --测试完成后删除
         this.add_gltf();
+        this.listen_create_model();
         // 监听拖放事件
     }
 
     get_element() {
         const target = document.getElementById('editor-main');
-        // FIXME 测试监听拖动事件 获取三维坐标中的位置
-        target.addEventListener('dragover', (evt) => {
-            const mouse = {};
-            const raycaster = new THREE.Raycaster();
-            evt.preventDefault();
-            const rect = this.renderer.domElement.getBoundingClientRect();
-            mouse.x = ((evt.clientX - rect.left) / rect.width) * 2 - 1;
-            mouse.y = -((evt.clientY - rect.top) / rect.height) * 2 + 1;
-            raycaster.setFromCamera(mouse, this.camera); // 通过摄像机和鼠标位置更新射线
-            const intersection = new THREE.Vector3();
-            const Plane = new THREE.Plane(new THREE.Vector3(0, -1, 0), 0);
-            if (raycaster.ray.intersectPlane(Plane, intersection)) {
-                // console.log('坐标');
-                // console.log(intersection);
-                // const geometry = new THREE.CircleGeometry(1);
-                // const material = new THREE.MeshBasicMaterial({ color: 0xffff00 });
-                // const circle = new THREE.Mesh(geometry, material);
-                // circle.position.copy(intersection);
-                // circle.position.y = 10;
-                // circle.rotateX(Math.PI / 2);
-                // this.scene.add(circle);
-                const geometry = new THREE.BoxGeometry(2, 2, 2);
-                const material = new THREE.MeshBasicMaterial({ color: 0xFFB6C1 });
-                const cube = new THREE.Mesh(geometry, material);
-                cube.position.copy(intersection);
-                this.scene.add(cube);
-            }
-        });
-
         this.ele_target = {
             obj: target,
             width: target.clientWidth,
@@ -127,6 +101,18 @@ export default class WzScene {
         // this.controls.addEventListener('change', this.renderer.render(this.scene, this.camera));
     }
 
+    // 初始化灯光
+    init_light() {
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.3);// 模拟远处类似太阳的光源
+        directionalLight.color.setHSL(0.1, 1, 0.95);
+        directionalLight.position.set(0, 200, 0).normalize();
+        this.scene.add(directionalLight);
+
+        const ambient = new THREE.AmbientLight(0xffffff, 1); // AmbientLight,影响整个场景的光源
+        ambient.position.set(0, 0, 0);
+        this.scene.add(ambient);
+    }
+
     // FIXME 测试完成后删除
     add_box() {
         const geometry = new THREE.BoxGeometry(10, 10, 10);
@@ -138,9 +124,93 @@ export default class WzScene {
     add_gltf() {
         const loader = new GLTFLoader();
         loader.load('/static/model/matilda/scene.gltf', (gltf) => {
-            this.scene.add(gltf.scene);
+            const model = gltf.scene;
+            console.log('加载的模型');
+            console.log(model);
+            this.scene.add(model);
         }, undefined, (error) => {
             console.error(error);
         });
+    }
+
+    // 监听新建模型
+    listen_create_model() {
+        const that = this;
+        bus.$on('create_model', (data) => {
+            this.is_create = true;
+            this.model_data = data;
+        });
+        this.renderer.domElement.addEventListener('mousemove', (evt) => {
+            evt.preventDefault();
+            if (this.is_create) {
+                this.is_create = false;
+                // 获取鼠标和平面交点坐标
+                const position = this.get_mouse_plane_pos(evt);
+                if (position) {
+                // 创建模型并且生成在对应坐标
+                    const loader = new GLTFLoader();
+                    loader.load(that.model_data.model_url, (gltf) => {
+                        that.creating_model = gltf.scene;
+                        that.scene.add(this.creating_model);
+                        that.creating_model.position.copy(position);
+                    }, undefined, (error) => {
+                        console.error(error);
+                    });
+                }
+            } else {
+                // 获取鼠标和平面交点坐标
+                const position = this.get_mouse_plane_pos(evt);
+                if (position && that.creating_model) {
+                    that.creating_model.position.copy(position);
+                } else {
+                    return null;
+                }
+            }
+        });
+
+        this.renderer.domElement.addEventListener('click', (evt) => {
+            if (this.creating_model) {
+                this.creating_model = null;
+            }
+        });
+        // FIXME 测试监听拖动事件 获取三维坐标中的位置
+        // target.addEventListener('dragover', (evt) => {
+        //     // const mouse = {};
+        //     // const raycaster = new THREE.Raycaster();
+        //     // evt.preventDefault();
+        //     // const rect = this.renderer.domElement.getBoundingClientRect();
+        //     // mouse.x = ((evt.clientX - rect.left) / rect.width) * 2 - 1;
+        //     // mouse.y = -((evt.clientY - rect.top) / rect.height) * 2 + 1;
+        //     // raycaster.setFromCamera(mouse, this.camera); // 通过摄像机和鼠标位置更新射线
+        //     // const intersection = new THREE.Vector3();
+        //     // const Plane = new THREE.Plane(new THREE.Vector3(0, -1, 0), 0);
+        //     // if (raycaster.ray.intersectPlane(Plane, intersection)) {
+        //     //     const geometry = new THREE.BoxGeometry(2, 2, 2);
+        //     //     const material = new THREE.MeshBasicMaterial({ color: 0xFFB6C1 });
+        //     //     const cube = new THREE.Mesh(geometry, material);
+        //     //     cube.position.copy(intersection);
+        //     //     this.scene.add(cube);
+
+        //     //     // 获取参数
+        //     //     const param =
+        //     //     // 根据参数的一级和二级类型 判定执行的方法
+        //     // }
+        // });
+    }
+
+    get_mouse_plane_pos(evt) {
+        const mouse = {};
+        const raycaster = new THREE.Raycaster();
+        evt.preventDefault();
+        const rect = this.renderer.domElement.getBoundingClientRect();
+        mouse.x = ((evt.clientX - rect.left) / rect.width) * 2 - 1;
+        mouse.y = -((evt.clientY - rect.top) / rect.height) * 2 + 1;
+        raycaster.setFromCamera(mouse, this.camera); // 通过摄像机和鼠标位置更新射线
+        const intersection = new THREE.Vector3();
+        const Plane = new THREE.Plane(new THREE.Vector3(0, -1, 0), 0);
+        if (raycaster.ray.intersectPlane(Plane, intersection)) {
+            return intersection;
+        }
+        return null;
     }
 }

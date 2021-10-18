@@ -35,6 +35,7 @@ module.exports = {
         'max-len': ['error', { code: 500 }],
         camelcase: 'off',
         'class-methods-use-this': 'off',
+        'no-debugger': 'off',
     },
     globals: {
         wzEditor: true,
