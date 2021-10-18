@@ -27,7 +27,7 @@ export default class WzScene {
         // this.add_box();// FIXME  添加立方体 --测试完成后删除
         this.add_gltf();
         this.listen_create_model();
-        // 监听拖放事件
+        this.add_floor(); // 添加地板
     }
 
     get_element() {
@@ -196,6 +196,38 @@ export default class WzScene {
         //     //     // 根据参数的一级和二级类型 判定执行的方法
         //     // }
         // });
+    }
+
+    // FIXME 添加地板测试
+    add_floor() {
+        const loader = new THREE.TextureLoader();
+        loader.load('/static/img/floor.jpg', (texture) => {
+            texture.wrapS = THREE.RepeatWrapping;
+            texture.wrapT = THREE.RepeatWrapping;
+            texture.repeat.set(10, 10);
+            const geometry = new THREE.BoxGeometry(2600, 1400, 1);
+            const geometryMaterial = new THREE.MeshBasicMaterial({
+                map: texture,
+                side: THREE.DoubleSide,
+            });
+            const floor = new THREE.Mesh(geometry, geometryMaterial);
+            floor.position.y = 1;
+            floor.position.x = 20;
+            floor.position.z = 30;
+            floor.rotation.x = Math.PI / 2;
+            floor.name = '地面';
+            this.scene.add(floor);
+        });
+    }
+
+    // 鼠标选中物体外发光
+    select_model() {
+
+    }
+
+    // 场景切换
+    scene_change() {
+
     }
 
     get_mouse_plane_pos(evt) {
