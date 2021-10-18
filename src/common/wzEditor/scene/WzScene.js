@@ -6,6 +6,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer';
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass';
+import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass';
+import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass';
+import { FXAAShader } from 'three/examples/jsm/shaders/FXAAShader';
 import bus from '@/common/EventBus';
 
 export default class WzScene {
@@ -24,10 +29,11 @@ export default class WzScene {
         this.init_sky(); // 初始化天空盒
         this.init_refer_line();// 初始化参考线
         this.init_mouse_control();// 开启鼠标控制
-        // this.add_box();// FIXME  添加立方体 --测试完成后删除
-        this.add_gltf();
+        this.add_box();// FIXME  添加立方体 --测试完成后删除
+        // this.add_gltf();
         this.listen_create_model();
-        this.add_floor(); // 添加地板
+        // this.add_floor(); // 添加地板
+        this.select_model(); // 选中模型外发光
     }
 
     get_element() {
@@ -37,6 +43,7 @@ export default class WzScene {
             width: target.clientWidth,
             height: target.clientHeight,
         };
+        return this.ele_target;
     }
 
     init_scene() {
@@ -61,6 +68,7 @@ export default class WzScene {
     start_render() {
         // FIXME requestAnimationFrame this指向问题
         this.renderer.render(this.scene, this.camera);
+        if (this.testaaa) this.testaaa.render();
         requestAnimationFrame(this.start_render.bind(this));
     }
 
@@ -119,6 +127,7 @@ export default class WzScene {
         const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
         const cube = new THREE.Mesh(geometry, material);
         this.scene.add(cube);
+        cube.name = 'box';
     }
 
     add_gltf() {
@@ -153,6 +162,9 @@ export default class WzScene {
                         that.creating_model = gltf.scene;
                         that.scene.add(this.creating_model);
                         that.creating_model.position.copy(position);
+                        this.creating_model.name = 'girl';
+                        console.log('新建的数据为');
+                        console.log(this.creating_model);
                     }, undefined, (error) => {
                         console.error(error);
                     });
@@ -173,29 +185,6 @@ export default class WzScene {
                 this.creating_model = null;
             }
         });
-        // FIXME 测试监听拖动事件 获取三维坐标中的位置
-        // target.addEventListener('dragover', (evt) => {
-        //     // const mouse = {};
-        //     // const raycaster = new THREE.Raycaster();
-        //     // evt.preventDefault();
-        //     // const rect = this.renderer.domElement.getBoundingClientRect();
-        //     // mouse.x = ((evt.clientX - rect.left) / rect.width) * 2 - 1;
-        //     // mouse.y = -((evt.clientY - rect.top) / rect.height) * 2 + 1;
-        //     // raycaster.setFromCamera(mouse, this.camera); // 通过摄像机和鼠标位置更新射线
-        //     // const intersection = new THREE.Vector3();
-        //     // const Plane = new THREE.Plane(new THREE.Vector3(0, -1, 0), 0);
-        //     // if (raycaster.ray.intersectPlane(Plane, intersection)) {
-        //     //     const geometry = new THREE.BoxGeometry(2, 2, 2);
-        //     //     const material = new THREE.MeshBasicMaterial({ color: 0xFFB6C1 });
-        //     //     const cube = new THREE.Mesh(geometry, material);
-        //     //     cube.position.copy(intersection);
-        //     //     this.scene.add(cube);
-
-        //     //     // 获取参数
-        //     //     const param =
-        //     //     // 根据参数的一级和二级类型 判定执行的方法
-        //     // }
-        // });
     }
 
     // FIXME 添加地板测试
@@ -205,7 +194,7 @@ export default class WzScene {
             texture.wrapS = THREE.RepeatWrapping;
             texture.wrapT = THREE.RepeatWrapping;
             texture.repeat.set(10, 10);
-            const geometry = new THREE.BoxGeometry(2600, 1400, 1);
+            const geometry = new THREE.BoxGeometry(500, 400, 1);
             const geometryMaterial = new THREE.MeshBasicMaterial({
                 map: texture,
                 side: THREE.DoubleSide,
@@ -222,7 +211,42 @@ export default class WzScene {
 
     // 鼠标选中物体外发光
     select_model() {
-
+        const aaa = this.get_element();
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+        const composer = new EffectComposer(this.renderer);
+        const renderPass = new RenderPass(this.scene, this.camera);
+        let selectedObjects = [];
+        composer.addPass(renderPass);
+        const outlinePass = new OutlinePass(new THREE.Vector2(aaa.width, aaa.height), this.scene, this.camera);
+        outlinePass.edgeStrength = 5;// 包围线浓度
+        outlinePass.edgeGlow = 0.5;// 边缘线范围
+        outlinePass.edgeThickness = 2;// 边缘线浓度
+        outlinePass.pulsePeriod = 2;// 包围线闪烁频率
+        outlinePass.visibleEdgeColor.set('#ffffff');// 包围线颜色
+        outlinePass.hiddenEdgeColor.set('#190a05');// 被遮挡的边界线颜色
+        composer.addPass(outlinePass);
+        const effectFXAA = new ShaderPass(FXAAShader);
+        console.log(effectFXAA.uniforms);
+        effectFXAA.uniforms.resolution.value.set(1 / aaa.width, 1 / aaa.height);
+        effectFXAA.renderToScreen = true;
+        composer.addPass(effectFXAA);
+        this.renderer.domElement.addEventListener('click', (event) => {
+            const rect = this.renderer.domElement.getBoundingClientRect();
+            mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+            mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+            raycaster.setFromCamera(mouse, this.camera);
+            const intersects = raycaster.intersectObjects(this.scene.children, true);
+            console.log(intersects);
+            selectedObjects = [];
+            if (intersects.length > 0 && intersects[0].object.name === 'girl') {
+                selectedObjects.push(intersects[0].object);
+                outlinePass.selectedObjects = selectedObjects;// 给选中的线条和物体加发光特效
+                console.log(outlinePass.selectedObjects);
+                // composer.render();
+                this.testaaa = composer;
+            }
+        });
     }
 
     // 场景切换
