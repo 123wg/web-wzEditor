@@ -221,8 +221,8 @@ export default class WzScene {
         const outlinePass = new OutlinePass(new THREE.Vector2(aaa.width, aaa.height), this.scene, this.camera);
         outlinePass.edgeStrength = 5;// 包围线浓度
         outlinePass.edgeGlow = 0.5;// 边缘线范围
-        outlinePass.edgeThickness = 2;// 边缘线浓度
-        outlinePass.pulsePeriod = 2;// 包围线闪烁频率
+        outlinePass.edgeThickness = 1;// 边缘线浓度
+        outlinePass.pulsePeriod = 3;// 包围线闪烁频率
         outlinePass.visibleEdgeColor.set('#ffffff');// 包围线颜色
         outlinePass.hiddenEdgeColor.set('#190a05');// 被遮挡的边界线颜色
         composer.addPass(outlinePass);
@@ -232,19 +232,39 @@ export default class WzScene {
         effectFXAA.renderToScreen = true;
         composer.addPass(effectFXAA);
         this.renderer.domElement.addEventListener('click', (event) => {
+            console.log(this.scene);
             const rect = this.renderer.domElement.getBoundingClientRect();
             mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
             mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
             raycaster.setFromCamera(mouse, this.camera);
-            const intersects = raycaster.intersectObjects(this.scene.children, true);
-            console.log(intersects);
             selectedObjects = [];
-            if (intersects.length > 0 && intersects[0].object.name === 'girl') {
-                selectedObjects.push(intersects[0].object);
+            const getParent = (e) => {
+                if (e.parent && e.parent !== this.scene) {
+                    getParent(e.parent);
+                } else {
+                    this.selectMesh = e;
+                }
+            };
+            // const canArr = [];
+            // this.scene.traverse((obj) => {
+            //     if (obj.type === 'Group') {
+            //         canArr.push(...obj.children);
+            //         // selectedObjects.push(obj);
+            //         // outlinePass.selectedObjects = selectedObjects;
+            //         // this.testaaa = composer;
+            //     }
+            // });
+            // console.log(canArr);
+            const intersects = raycaster.intersectObjects(this.scene.children, true);
+            // 如果选中的是身体的某一部分的话 查找所有祖先是不是有name为girl的
+            console.log(intersects);
+            if (intersects.length !== 0) {
+                getParent(intersects[0].object);
+                selectedObjects.push(this.selectMesh);
                 outlinePass.selectedObjects = selectedObjects;// 给选中的线条和物体加发光特效
-                console.log(outlinePass.selectedObjects);
-                // composer.render();
                 this.testaaa = composer;
+            } else {
+                outlinePass.selectedObjects = [];
             }
         });
     }
