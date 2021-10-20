@@ -30,7 +30,7 @@ export default class WzScene {
         this.init_refer_line();// 初始化参考线
         this.init_mouse_control();// 开启鼠标控制
         this.add_box();// FIXME  添加立方体 --测试完成后删除
-        // this.add_gltf();
+        this.add_gltf();
         this.listen_create_model();
         // this.add_floor(); // 添加地板
         this.select_model(); // 选中模型外发光
@@ -132,7 +132,9 @@ export default class WzScene {
 
     add_gltf() {
         const loader = new GLTFLoader();
-        loader.load('/static/model/matilda/scene.gltf', (gltf) => {
+        loader.load('/static/model/self.gltf', (gltf) => {
+            console.log('自己导出的模型');
+            console.log(gltf);
             const model = gltf.scene;
             console.log('加载的模型');
             console.log(model);
