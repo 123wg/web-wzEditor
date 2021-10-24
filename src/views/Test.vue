@@ -41,6 +41,7 @@ export default {
             const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
             const cube = new THREE.Mesh(geometry, material);
             cube.name = '第一个';
+            cube.position.z = 10;
             this.scene.add(cube);
         },
 
