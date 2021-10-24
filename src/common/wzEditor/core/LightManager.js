@@ -5,6 +5,6 @@
 * */
 export default class LightManager {
     constructor(parent) {
-        this.parent = parent;
+        this.app = parent;
     }
 }

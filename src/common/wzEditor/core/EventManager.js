@@ -5,6 +5,6 @@
 * */
 export default class EventManager {
     constructor(parent) {
-        this.parent = parent;
+        this.app = parent;
     }
 }

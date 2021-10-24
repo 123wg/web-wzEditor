@@ -5,6 +5,20 @@
 * */
 export default class DomManager {
     constructor(parent) {
-        this.parent = parent;
+        this.app = parent;
+        this.node = null; // dom节点
+        this.size = { // 节点大小
+            width: 0,
+            height: 0,
+        };
+        this.init();
+    }
+
+    init() {
+        this.node = document.getElementById('wz-editor');
+        this.size = {
+            width: this.node.clientWidth,
+            height: this.node.clientHeight,
+        };
     }
 }

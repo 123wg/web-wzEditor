@@ -9,7 +9,7 @@
 
 <script>
 import { defineComponent } from 'vue';
-import WzEditor from '@/common/wzEditor/WzEditor';
+import WzEditor from '../common/wzEditor/WzEditor';
 import EditorMain from '@/components/EditorMain.vue';
 import EditorTool from '@/components/EditorTool.vue';
 import EditorMaterial from '@/components/EditorMaterial.vue';

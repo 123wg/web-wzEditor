@@ -3,7 +3,7 @@
 * @Author: wanggang
 * @Date: 2021-10-24 19:49:56
 * */
-class Menu {
+export default class Menu {
     constructor() {
         this.init();
     }
@@ -13,5 +13,3 @@ class Menu {
 
     }
 }
-
-export default Menu;

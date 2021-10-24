@@ -6,5 +6,7 @@
 export default class BcManager {
     constructor(parent) {
         this.parent = parent;
+        this.background = '';
+        this.skyBox = null;// 天空盒
     }
 }
