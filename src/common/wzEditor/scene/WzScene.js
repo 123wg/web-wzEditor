@@ -23,27 +23,28 @@ export default class WzScene {
         this.init_scene();//  初始化场景
         this.init_camera();//  初始化相机
         this.init_renderer();//  初始化渲染器
-        // this.init_light(); //  FIXME 初始化灯光，好像没啥用 不知道是不是使用背景贴图的原因
         this.start_render();//  执行渲染方法
         this.on_resize();//  窗口自适应
-        this.init_sky(); // 初始化天空盒
-        this.init_refer_line();// 初始化参考线
         this.init_mouse_control();// 开启鼠标控制
-        this.add_box();// FIXME  添加立方体 --测试完成后删除
-        // this.add_gltf();
-        this.listen_create_model();
-        // this.add_floor(); // 添加地板
-        this.select_model(); // 选中模型外发光
+
+        // this.init_sky(); // 初始化天空盒
+        this.init_refer_line();// 初始化参考线
+
+        // this.add_box();// FIXME  添加立方体 --测试完成后删除
+        this.add_gltf();
+        // this.listen_create_model();
+        // // this.add_floor(); // 添加地板
+        // this.select_model(); // 选中模型外发光
+
+        this.draw_rect(); // 绘制矩形
     }
 
     get_element() {
-        const target = document.getElementById('editor-main');
-        this.ele_target = {
-            obj: target,
-            width: target.clientWidth,
-            height: target.clientHeight,
+        this.dom = document.getElementById('editor-main');
+        this.size = {
+            width: this.dom.clientWidth,
+            height: this.dom.clientHeight,
         };
-        return this.ele_target;
     }
 
     init_scene() {
@@ -51,7 +52,7 @@ export default class WzScene {
     }
 
     init_camera() {
-        const { width, height } = this.ele_target;
+        const { width, height } = this.size;
         this.camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 100000);
         this.camera.position.x = -26.927091840370167;
         this.camera.position.z = 30.793487404966882;
@@ -59,28 +60,36 @@ export default class WzScene {
     }
 
     init_renderer() {
-        const { width, height } = this.ele_target;
+        const { width, height } = this.size;
         this.renderer = new THREE.WebGLRenderer();
         this.renderer.setSize(width, height);
-        this.ele_target.obj.appendChild(this.renderer.domElement);
+        this.renderer.setClearColor(0xb9d3ff, 1); // 设置背景颜色
+        this.dom.appendChild(this.renderer.domElement);
     }
 
     start_render() {
         // FIXME requestAnimationFrame this指向问题
         this.renderer.render(this.scene, this.camera);
         if (this.testaaa) this.testaaa.render();
+        if (this.controls) this.controls.update();
         requestAnimationFrame(this.start_render.bind(this));
     }
 
     on_resize() {
         const resizeFun = () => {
             this.get_element();
-            const { width, height } = this.ele_target;
+            const { width, height } = this.size;
             this.renderer.setSize(width, height);
             this.camera.aspect = width / height;
             this.camera.updateProjectionMatrix();
         };
         window.addEventListener('resize', resizeFun, false);
+    }
+
+    init_mouse_control() {
+        this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+        this.controls.enableDamping = true; // 开启惯性
+        this.controls.dampingFactor = 0.8;
     }
 
     init_sky() {
@@ -104,11 +113,6 @@ export default class WzScene {
         this.scene.add(this.gridHelper);
     }
 
-    init_mouse_control() {
-        this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-        // this.controls.addEventListener('change', this.renderer.render(this.scene, this.camera));
-    }
-
     // 初始化灯光
     init_light() {
         const directionalLight = new THREE.DirectionalLight(0xffffff, 0.3);// 模拟远处类似太阳的光源
@@ -123,7 +127,7 @@ export default class WzScene {
 
     // FIXME 测试完成后删除
     add_box() {
-        const geometry = new THREE.BoxGeometry(10, 10, 10);
+        const geometry = new THREE.BoxGeometry(100, 0.1, 10);
         const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
         const cube = new THREE.Mesh(geometry, material);
         this.scene.add(cube);
@@ -180,7 +184,7 @@ export default class WzScene {
             }
         });
 
-        this.renderer.domElement.addEventListener('click', (evt) => {
+        this.renderer.domElement.addEventListener('click', () => {
             if (this.creating_model) {
                 this.creating_model = null;
             }
@@ -211,14 +215,14 @@ export default class WzScene {
 
     // 鼠标选中物体外发光
     select_model() {
-        const aaa = this.get_element();
+        const { width, height } = this.size;
         const raycaster = new THREE.Raycaster();
         const mouse = new THREE.Vector2();
         const composer = new EffectComposer(this.renderer);
         const renderPass = new RenderPass(this.scene, this.camera);
         let selectedObjects = [];
         composer.addPass(renderPass);
-        const outlinePass = new OutlinePass(new THREE.Vector2(aaa.width, aaa.height), this.scene, this.camera);
+        const outlinePass = new OutlinePass(new THREE.Vector2(width, height), this.scene, this.camera);
         outlinePass.edgeStrength = 5;// 包围线浓度
         outlinePass.edgeGlow = 0.5;// 边缘线范围
         outlinePass.edgeThickness = 1;// 边缘线浓度
@@ -228,7 +232,7 @@ export default class WzScene {
         composer.addPass(outlinePass);
         const effectFXAA = new ShaderPass(FXAAShader);
         console.log(effectFXAA.uniforms);
-        effectFXAA.uniforms.resolution.value.set(1 / aaa.width, 1 / aaa.height);
+        effectFXAA.uniforms.resolution.value.set(1 / width, 1 / height);
         effectFXAA.renderToScreen = true;
         composer.addPass(effectFXAA);
         this.renderer.domElement.addEventListener('click', (event) => {
@@ -245,16 +249,6 @@ export default class WzScene {
                     this.selectMesh = e;
                 }
             };
-            // const canArr = [];
-            // this.scene.traverse((obj) => {
-            //     if (obj.type === 'Group') {
-            //         canArr.push(...obj.children);
-            //         // selectedObjects.push(obj);
-            //         // outlinePass.selectedObjects = selectedObjects;
-            //         // this.testaaa = composer;
-            //     }
-            // });
-            // console.log(canArr);
             const intersects = raycaster.intersectObjects(this.scene.children, true);
             // 如果选中的是身体的某一部分的话 查找所有祖先是不是有name为girl的
             console.log(intersects);
@@ -269,11 +263,6 @@ export default class WzScene {
         });
     }
 
-    // 场景切换
-    scene_change() {
-
-    }
-
     get_mouse_plane_pos(evt) {
         const mouse = {};
         const raycaster = new THREE.Raycaster();
@@ -283,10 +272,96 @@ export default class WzScene {
         mouse.y = -((evt.clientY - rect.top) / rect.height) * 2 + 1;
         raycaster.setFromCamera(mouse, this.camera); // 通过摄像机和鼠标位置更新射线
         const intersection = new THREE.Vector3();
-        const Plane = new THREE.Plane(new THREE.Vector3(0, -1, 0), 0);
+        const Plane = new THREE.Plane(new THREE.Vector3(0, 0.01, 0), 0);
         if (raycaster.ray.intersectPlane(Plane, intersection)) {
             return intersection;
         }
         return null;
+    }
+
+    // 绘制矩形
+    draw_rect() {
+        // 是否正在绘制矩形
+        this.is_draw_rect = false;
+        this.dom.addEventListener('click', (evt) => {
+            if (this.is_draw_rect) return;
+            this.rect_box = [];
+
+            const start = this.get_mouse_plane_pos(evt);
+            this.rect_start = start;
+            for (let i = 0; i < 4; i += 1) {
+                const geometry = new THREE.BoxGeometry(5, 0.1, 5);
+                console.log(geometry.parameters);
+                const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+                const cube = new THREE.Mesh(geometry, material);
+                cube.visible = false;
+                cube.position.x = start.x;
+                cube.position.z = start.z;
+                this.rect_box.push(cube);
+                this.scene.add(cube);
+            }
+            this.is_draw_rect = true;
+
+            this.create_floor = () => {
+                if (!this.is_draw_rect) return;
+                this.is_draw_rect = false;
+                for (let i = 0; i < this.rect_box.length; i += 1) {
+                    this.scene.remove(this.rect_box[i]);
+                }
+                this.rect_box = [];
+
+                // 绘制地板
+                const loader = new THREE.TextureLoader();
+                loader.load('/static/img/floor.jpg', (texture) => {
+                    texture.wrapS = THREE.RepeatWrapping;
+                    texture.wrapT = THREE.RepeatWrapping;
+                    texture.repeat.set(10, 10);
+                    const geometry = new THREE.BoxGeometry(this.rect_width, 1, this.rect_height);
+                    const geometryMaterial = new THREE.MeshBasicMaterial({
+                        map: texture,
+                        side: THREE.DoubleSide,
+                    });
+                    const floor = new THREE.Mesh(geometry, geometryMaterial);
+                    floor.position.y = 1;
+                    floor.position.x = this.rect_cenx;
+                    floor.position.z = this.rect_cenz;
+                    // floor.rotation.x = Math.PI / 2;
+                    floor.name = '地面';
+                    this.scene.add(floor);
+                    this.dom.removeEventListener('click', this.create_floor);
+                });
+            };
+            this.dom.addEventListener('click', this.create_floor);
+        });
+        this.dom.addEventListener('mousemove', (evt) => {
+            if (!this.is_draw_rect) return;
+            const end = this.get_mouse_plane_pos(evt);
+            const startx = this.rect_start.x;
+            const startz = this.rect_start.z;
+            const endx = end.x;
+            const endz = end.z;
+            const cenx = (startx + endx) / 2;
+            const cenz = (startz + endz) / 2;
+            this.rect_cenx = (startx + endx) / 2;
+            this.rect_cenz = (startz + endz) / 2;
+            const pos = [[startx, startz], [endx, startz], [endx, endz], [startx, endz]];
+            const width = endx - startx;
+            const height = endz - startz;
+            this.rect_width = width;
+            this.rect_height = height;
+            for (let i = 0; i < this.rect_box.length; i += 1) {
+                this.rect_box[i].visible = true;
+
+                if (i % 2 !== 0) {
+                    this.rect_box[i].position.z = cenz;
+                    [this.rect_box[i].position.x] = pos[i];
+                    this.rect_box[i].scale.z = height / 5;
+                } else {
+                    this.rect_box[i].position.x = cenx;
+                    [, this.rect_box[i].position.z] = pos[i];
+                    this.rect_box[i].scale.x = width / 5;
+                }
+            }
+        });
     }
 }
