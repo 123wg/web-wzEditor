@@ -25,12 +25,12 @@ export default class WzScene {
         this.init_scene();//  初始化场景
         this.init_camera();//  初始化相机
         this.init_renderer();//  初始化渲染器
-        // this.init_light(); // 开启光照;
+        this.init_light(); // 开启光照;
         this.start_render();//  执行渲染方法
         this.on_resize();//  窗口自适应
         this.init_mouse_control();// 开启鼠标控制
 
-        // this.init_sky(); // 初始化天空盒
+        this.init_sky(); // 初始化天空盒
         this.init_refer_line();// 初始化参考线
 
         // this.add_box();// FIXME  添加立方体 --测试完成后删除
@@ -39,8 +39,12 @@ export default class WzScene {
         // // this.add_floor(); // 添加地板
         // this.select_model(); // 选中模型外发光
 
+        // 基础功能测试------start-----
+        this.text_texture();// 测试贴图
+        // 基础功能测试------end-----
+
         // 交互功能测试区 ----- start-------
-        this.draw_rect(); // 拖拽绘制矩形
+        // this.draw_rect(); // 拖拽绘制矩形
         // this.draw_build_facade();// 点击绘制建筑盒子
         this.draw_fence();//  TODO 拖拽绘制围墙
         // 交互功能测试区 ----- end-------
@@ -115,20 +119,19 @@ export default class WzScene {
         const size = 10000;
         const divisions = 1000;
         this.gridHelper = new THREE.GridHelper(size, divisions);
-        console.log('辅助线');
-        console.log(this.gridHelper);
+        // console.log('辅助线');
+        // console.log(this.gridHelper);
         this.scene.add(this.gridHelper);
     }
 
     // 初始化灯光
     init_light() {
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 1);// 模拟远处类似太阳的光源
-        directionalLight.color.setHSL(0.1, 1, 0.95);
-        directionalLight.position.set(100, 200, 50).normalize();
-        this.scene.add(directionalLight);
-
-        const ambient = new THREE.AmbientLight(0xffffff, 1); // AmbientLight,影响整个场景的光源
-        ambient.position.set(0, 0, 0);
+        // 点光源
+        const point = new THREE.PointLight(0xffffff);
+        point.position.set(400, 200, 300); // 点光源位置
+        this.scene.add(point); // 点光源添加到场景中
+        // 环境光
+        const ambient = new THREE.AmbientLight(0x444444);
         this.scene.add(ambient);
     }
 
@@ -145,8 +148,8 @@ export default class WzScene {
         const loader = new GLTFLoader();
         loader.load('/static/model/matilda/scene.gltf', (gltf) => {
             const model = gltf.scene;
-            console.log('加载的模型');
-            console.log(model);
+            // console.log('加载的模型');
+            // console.log(model);
             this.scene.add(model);
         }, undefined, (error) => {
             console.error(error);
@@ -174,8 +177,8 @@ export default class WzScene {
                         that.scene.add(this.creating_model);
                         that.creating_model.position.copy(position);
                         this.creating_model.name = 'girl';
-                        console.log('新建的数据为');
-                        console.log(this.creating_model);
+                        // console.log('新建的数据为');
+                        // console.log(this.creating_model);
                     }, undefined, (error) => {
                         console.error(error);
                     });
@@ -238,12 +241,12 @@ export default class WzScene {
         outlinePass.hiddenEdgeColor.set('#190a05');// 被遮挡的边界线颜色
         composer.addPass(outlinePass);
         const effectFXAA = new ShaderPass(FXAAShader);
-        console.log(effectFXAA.uniforms);
+        // console.log(effectFXAA.uniforms);
         effectFXAA.uniforms.resolution.value.set(1 / width, 1 / height);
         effectFXAA.renderToScreen = true;
         composer.addPass(effectFXAA);
         this.renderer.domElement.addEventListener('click', (event) => {
-            console.log(this.scene);
+            // console.log(this.scene);
             const rect = this.renderer.domElement.getBoundingClientRect();
             mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
             mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
@@ -437,35 +440,25 @@ export default class WzScene {
     }
 
     // 拖拽绘制围墙
-    draw_fence() {
+    draw_fence() {}
+
+    /**
+    *测试贴图
+    *aoMap:环境光遮蔽 物体距离越近 光照效果越暗
+    */
+    text_texture() {
         const loader = new THREE.TextureLoader();
-        loader.load('/static/img/wall.jpg', (texture) => {
-            texture.wrapS = THREE.RepeatWrapping;
-            texture.wrapT = THREE.RepeatWrapping;
-            texture.repeat.set(1, 1);
-            const geometry = new THREE.BoxGeometry(100, 30, 5);
-            const geometryMaterial = new THREE.MeshBasicMaterial({
-                map: texture,
-                side: THREE.DoubleSide,
-            });
-            const wall = new THREE.Mesh(geometry, geometryMaterial);
-            wall.position.y = 15;
-            wall.position.x = 50;
-            wall.position.z = 100;
-            wall.name = '墙体';
-            this.scene.add(wall);
+        const texture = loader.load('/static/img/wall.jpg');
+        texture.wrapS = THREE.RepeatWrapping;
+        texture.wrapT = THREE.RepeatWrapping;
+        texture.repeat.set(1, 1);
+        const geometry = new THREE.BoxGeometry(100, 10, 5);
+        const material = new THREE.MeshLambertMaterial({
+            map: texture,
+            side: THREE.DoubleSide,
         });
-        // 创建墙体 贴图  鼠标移动 放大
-
-        // this.dom.addEventListener('click', (evt) => {
-        //     this.draw_fence = true;
-        //     this.fence_start = this.get_mouse_plane_pos(evt);
-        //     console.log(this.fence_start);
-        // });
-
-        // this.dom.addEventListener('mousemove', (mov_evt) => {
-        //     this.fence_end = this.get_mouse_plane_pos(mov_evt);
-        //     console.log(this.fence_end);
-        // });
+        const cube = new THREE.Mesh(geometry, material);
+        this.scene.add(cube);
+        console.log(cube);
     }
 }
