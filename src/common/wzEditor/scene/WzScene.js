@@ -121,6 +121,7 @@ export default class WzScene {
         this.gridHelper = new THREE.GridHelper(size, divisions);
         // console.log('辅助线');
         // console.log(this.gridHelper);
+        this.gridHelper.position.y = -8;
         this.scene.add(this.gridHelper);
     }
 
@@ -445,19 +446,26 @@ export default class WzScene {
     /**
     *测试贴图
     *aoMap:环境光遮蔽 物体距离越近 光照效果越暗
+    数组材质
     */
     text_texture() {
         const loader = new THREE.TextureLoader();
         const texture = loader.load('/static/img/wall.jpg');
         texture.wrapS = THREE.RepeatWrapping;
         texture.wrapT = THREE.RepeatWrapping;
-        texture.repeat.set(1, 1);
+        // texture.repeat.set(10, 2);
+        texture.needsUpdate = true;
         const geometry = new THREE.BoxGeometry(100, 10, 5);
-        const material = new THREE.MeshLambertMaterial({
+        const material_1 = new THREE.MeshLambertMaterial({
             map: texture,
-            side: THREE.DoubleSide,
         });
+        // 材质对象1
+        const material_2 = new THREE.MeshPhongMaterial({
+            color: '#B3B3B3',
+        });
+        const material = [material_2, material_2, material_2, material_2, material_1, material_1];
         const cube = new THREE.Mesh(geometry, material);
+        cube.position.y = 1;
         this.scene.add(cube);
         console.log(cube);
     }
