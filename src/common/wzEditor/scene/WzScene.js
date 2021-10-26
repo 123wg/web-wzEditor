@@ -40,11 +40,9 @@ export default class WzScene {
         // this.select_model(); // 选中模型外发光
 
         // 交互功能测试区 ----- start-------
-        // this.draw_rect(); // 拖拽绘制矩形
-
-        // TODO 点击绘制建筑盒子
-        this.draw_build_facade();
-        // TODO 双击进入建筑内部 隐藏其它模型
+        this.draw_rect(); // 拖拽绘制矩形
+        // this.draw_build_facade();// 点击绘制建筑盒子
+        this.draw_fence();//  TODO 拖拽绘制围墙
         // 交互功能测试区 ----- end-------
     }
 
@@ -272,6 +270,7 @@ export default class WzScene {
         });
     }
 
+    // 屏幕坐标转三维坐标
     get_mouse_plane_pos(evt) {
         const mouse = {};
         const raycaster = new THREE.Raycaster();
@@ -435,5 +434,38 @@ export default class WzScene {
             if (!this.draw_build_facade) return;
             this.draw_build_facade = false;
         });
+    }
+
+    // 拖拽绘制围墙
+    draw_fence() {
+        const loader = new THREE.TextureLoader();
+        loader.load('/static/img/wall.jpg', (texture) => {
+            texture.wrapS = THREE.RepeatWrapping;
+            texture.wrapT = THREE.RepeatWrapping;
+            texture.repeat.set(1, 1);
+            const geometry = new THREE.BoxGeometry(100, 30, 5);
+            const geometryMaterial = new THREE.MeshBasicMaterial({
+                map: texture,
+                side: THREE.DoubleSide,
+            });
+            const wall = new THREE.Mesh(geometry, geometryMaterial);
+            wall.position.y = 15;
+            wall.position.x = 50;
+            wall.position.z = 100;
+            wall.name = '墙体';
+            this.scene.add(wall);
+        });
+        // 创建墙体 贴图  鼠标移动 放大
+
+        // this.dom.addEventListener('click', (evt) => {
+        //     this.draw_fence = true;
+        //     this.fence_start = this.get_mouse_plane_pos(evt);
+        //     console.log(this.fence_start);
+        // });
+
+        // this.dom.addEventListener('mousemove', (mov_evt) => {
+        //     this.fence_end = this.get_mouse_plane_pos(mov_evt);
+        //     console.log(this.fence_end);
+        // });
     }
 }
