@@ -11,6 +11,8 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass';
 import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass';
 import { FXAAShader } from 'three/examples/jsm/shaders/FXAAShader';
+import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry';
+import { FontLoader } from 'three/examples/jsm/loaders/FontLoader';
 import bus from '@/common/EventBus';
 
 export default class WzScene {
@@ -23,6 +25,7 @@ export default class WzScene {
         this.init_scene();//  初始化场景
         this.init_camera();//  初始化相机
         this.init_renderer();//  初始化渲染器
+        // this.init_light(); // 开启光照;
         this.start_render();//  执行渲染方法
         this.on_resize();//  窗口自适应
         this.init_mouse_control();// 开启鼠标控制
@@ -36,7 +39,13 @@ export default class WzScene {
         // // this.add_floor(); // 添加地板
         // this.select_model(); // 选中模型外发光
 
-        this.draw_rect(); // 绘制矩形
+        // 交互功能测试区 ----- start-------
+        // this.draw_rect(); // 拖拽绘制矩形
+
+        // TODO 点击绘制建筑盒子
+        this.draw_build_facade();
+        // TODO 双击进入建筑内部 隐藏其它模型
+        // 交互功能测试区 ----- end-------
     }
 
     get_element() {
@@ -63,7 +72,7 @@ export default class WzScene {
         const { width, height } = this.size;
         this.renderer = new THREE.WebGLRenderer();
         this.renderer.setSize(width, height);
-        this.renderer.setClearColor(0xb9d3ff, 1); // 设置背景颜色
+        this.renderer.setClearColor(new THREE.Color(0, 0, 0), 1); // 设置背景颜色
         this.dom.appendChild(this.renderer.domElement);
     }
 
@@ -115,9 +124,9 @@ export default class WzScene {
 
     // 初始化灯光
     init_light() {
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.3);// 模拟远处类似太阳的光源
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 1);// 模拟远处类似太阳的光源
         directionalLight.color.setHSL(0.1, 1, 0.95);
-        directionalLight.position.set(0, 200, 0).normalize();
+        directionalLight.position.set(100, 200, 50).normalize();
         this.scene.add(directionalLight);
 
         const ambient = new THREE.AmbientLight(0xffffff, 1); // AmbientLight,影响整个场景的光源
@@ -362,6 +371,69 @@ export default class WzScene {
                     this.rect_box[i].scale.x = width / 5;
                 }
             }
+        });
+    }
+
+    // 绘制建筑盒子
+    draw_build_facade() {
+        this.draw_build_facade = false;
+        this.dom.addEventListener('mousedown', (evt) => {
+            if (this.draw_build_facade) return;
+            const pos = this.get_mouse_plane_pos(evt);
+            const width = 100;
+            const depth = 100;
+            const text = '建筑';
+            // 创建立方体盒子
+            const geometry = new THREE.BoxGeometry(width, 20, depth);
+            const material = new THREE.MeshBasicMaterial({
+                color: '#47c2de',
+                transparent: true,
+                opacity: 0.6,
+            });
+            const cube = new THREE.Mesh(geometry, material);
+            this.scene.add(cube);
+            cube.position.x = pos.x;
+            cube.position.z = pos.z;
+            cube.position.y = 0.1;
+
+            // 绑定点击事件
+            cube.addEventListener('click', (cube_evt) => {
+                console.log(cube_evt);
+            });
+
+            // 创建文字
+            const loader = new FontLoader();
+            console.log(loader);
+            loader.load('/static/font/KaiTi_Regular.json', (font) => {
+                const facade_text = new TextGeometry(text, {
+                    font,
+                    size: 10,
+                    height: 0.1,
+                    curveSegments: 12,
+                    bevelEnabled: true,
+                    bevelThickness: 0.1,
+                    bevelSize: 0.05,
+                    bevelSegments: 3,
+                });
+                const text_material = new THREE.MeshBasicMaterial({ color: 0x0000ff });
+                const text_cube = new THREE.Mesh(facade_text, text_material);
+
+                // 计算包围球 使文字居中
+                text_cube.geometry.computeBoundingSphere();
+                const { radius } = text_cube.geometry.boundingSphere;
+                this.scene.add(text_cube);
+                text_cube.position.y = 10;
+                text_cube.position.x = pos.x - radius;
+                text_cube.position.z = pos.z;
+                text_cube.rotation.set(-0.5 * Math.PI, 0, 0); // 几何体旋转的使用
+
+                this.draw_build_facade = true;
+            });
+        });
+
+        this.dom.addEventListener('mouseup', () => {
+            if (!this.draw_build_facade) return;
+            this.draw_build_facade = false;
         });
     }
 }
