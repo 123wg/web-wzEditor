@@ -42,7 +42,8 @@ export default class WzScene {
 
         // 基础功能测试------start-----
         // this.test_texture();// 测试贴图
-        this.test_window();// 测试创建窗户
+        // this.test_window();// 测试创建窗户
+        this.test_pipe();// 测试创建管道
         // 基础功能测试------end-----
 
         // 交互功能测试区 ----- start-------
@@ -480,7 +481,6 @@ export default class WzScene {
         const texture = loader.load('/static/img/wall.jpg');
         texture.wrapS = THREE.RepeatWrapping;
         texture.wrapT = THREE.RepeatWrapping;
-        // texture.repeat.set(10, 2);
         texture.needsUpdate = true;
         const geometry = new THREE.BoxGeometry(150, 30, 5);
         const cube = new THREE.Mesh(geometry);
@@ -490,16 +490,39 @@ export default class WzScene {
         const material_1 = new THREE.MeshLambertMaterial({
             map: texture,
         });
-        // 材质对象1
-        // const material_2 = new THREE.MeshPhongMaterial({
-        //     color: '#B3B3B3',
-        // });
-        // const material = [material_2, material_2, material_2, material_2, material_1, material_1];
-
         const new_wall = CSG.subtract(cube, window_box);
         new_wall.material = material_1;
         new_wall.position.x = 50;
         new_wall.position.y = 10;
         this.scene.add(new_wall);
+    }
+
+    // 创建管道
+    test_pipe() {
+        const curve = new THREE.CatmullRomCurve3([
+            new THREE.Vector3(-80, -40, 0),
+            new THREE.Vector3(-70, 40, 0),
+            new THREE.Vector3(70, 40, 0),
+            new THREE.Vector3(80, -40, 0),
+        ]);
+        const tubeGeometry = new THREE.TubeGeometry(curve, 100, 2, 200, false);
+        const texture_loader = new THREE.TextureLoader();
+        const texture = texture_loader.load('/static/img/333.jpg');
+        // 设置阵列模式为 RepeatWrapping
+        texture.wrapS = THREE.RepeatWrapping;
+        texture.wrapT = THREE.RepeatWrapping;
+        texture.repeat.set(20, 8);
+        const tubeMaterial = new THREE.MeshPhongMaterial({
+            map: texture,
+            // color: 'blue',
+            transparent: true,
+            opacity: 0.8,
+            side: THREE.DoubleSide,
+        });
+        setInterval(() => {
+            texture.offset.x -= 0.05;
+        }, 10);
+        const tube = new THREE.Mesh(tubeGeometry, tubeMaterial);
+        this.scene.add(tube);
     }
 }
