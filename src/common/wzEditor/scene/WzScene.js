@@ -13,6 +13,7 @@ import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass';
 import { FXAAShader } from 'three/examples/jsm/shaders/FXAAShader';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry';
 import { FontLoader } from 'three/examples/jsm/loaders/FontLoader';
+import { CSG } from 'three-csg-ts'; // 交集并集计算
 import bus from '@/common/EventBus';
 
 export default class WzScene {
@@ -34,13 +35,14 @@ export default class WzScene {
         this.init_refer_line();// 初始化参考线
 
         // this.add_box();// FIXME  添加立方体 --测试完成后删除
-        this.add_gltf();
+        // this.add_gltf();
         // this.listen_create_model();
         // // this.add_floor(); // 添加地板
         // this.select_model(); // 选中模型外发光
 
         // 基础功能测试------start-----
-        this.text_texture();// 测试贴图
+        // this.test_texture();// 测试贴图
+        this.test_window();// 测试创建窗户
         // 基础功能测试------end-----
 
         // 交互功能测试区 ----- start-------
@@ -448,14 +450,14 @@ export default class WzScene {
     *aoMap:环境光遮蔽 物体距离越近 光照效果越暗
     数组材质
     */
-    text_texture() {
+    test_texture() {
         const loader = new THREE.TextureLoader();
         const texture = loader.load('/static/img/wall.jpg');
         texture.wrapS = THREE.RepeatWrapping;
         texture.wrapT = THREE.RepeatWrapping;
         // texture.repeat.set(10, 2);
         texture.needsUpdate = true;
-        const geometry = new THREE.BoxGeometry(100, 10, 5);
+        const geometry = new THREE.BoxGeometry(150, 30, 5);
         const material_1 = new THREE.MeshLambertMaterial({
             map: texture,
         });
@@ -465,8 +467,39 @@ export default class WzScene {
         });
         const material = [material_2, material_2, material_2, material_2, material_1, material_1];
         const cube = new THREE.Mesh(geometry, material);
-        cube.position.y = 1;
+        cube.position.y = 8;
+        cube.position.x = 50;
         this.scene.add(cube);
         console.log(cube);
+    }
+
+    // 测试创建窗户 -- 使用这个库贴图没了 坑逼
+    // https://www.npmjs.com/package/three-csg-ts
+    test_window() {
+        const loader = new THREE.TextureLoader();
+        const texture = loader.load('/static/img/wall.jpg');
+        texture.wrapS = THREE.RepeatWrapping;
+        texture.wrapT = THREE.RepeatWrapping;
+        // texture.repeat.set(10, 2);
+        texture.needsUpdate = true;
+        const geometry = new THREE.BoxGeometry(150, 30, 5);
+        const cube = new THREE.Mesh(geometry);
+
+        const window_box = new THREE.Mesh(new THREE.BoxGeometry(20, 20, 5));
+
+        const material_1 = new THREE.MeshLambertMaterial({
+            map: texture,
+        });
+        // 材质对象1
+        // const material_2 = new THREE.MeshPhongMaterial({
+        //     color: '#B3B3B3',
+        // });
+        // const material = [material_2, material_2, material_2, material_2, material_1, material_1];
+
+        const new_wall = CSG.subtract(cube, window_box);
+        new_wall.material = material_1;
+        new_wall.position.x = 50;
+        new_wall.position.y = 10;
+        this.scene.add(new_wall);
     }
 }
