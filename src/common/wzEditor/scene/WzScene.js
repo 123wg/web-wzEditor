@@ -27,6 +27,7 @@ export default class WzScene {
         this.init_camera();//  初始化相机
         this.init_renderer();//  初始化渲染器
         this.init_light(); // 开启光照;
+        // this.scene_fog();// 场景雾化效果
         this.start_render();//  执行渲染方法
         this.on_resize();//  窗口自适应
         this.init_mouse_control();// 开启鼠标控制
@@ -41,16 +42,32 @@ export default class WzScene {
         // this.select_model(); // 选中模型外发光
 
         // 基础功能测试------start-----
-        // this.test_texture();// 测试贴图
-        // this.test_window();// 测试创建窗户
-        this.test_pipe();// 测试创建管道
+        // 测试贴图
+        // this.test_texture();
+        // 测试创建窗户
+        // this.test_window();
+        // 测试创建管道
+        // this.test_pipe();
+        // 测试group的使用
+        // this.test_group();
+
         // 基础功能测试------end-----
 
         // 交互功能测试区 ----- start-------
-        // this.draw_rect(); // 拖拽绘制矩形
-        // this.draw_build_facade();// 点击绘制建筑盒子
-        this.draw_fence();//  TODO 拖拽绘制围墙
+        // 拖拽绘制矩形
+        // this.draw_rect();
+        // 点击绘制建筑盒子
+        // this.draw_build_facade();
+        // FIXME 测试模型复制 为拖拽做准备
+        // this.test_copy();
+        //  TODO 拖拽绘制围墙
+        // this.draw_fence();
         // 交互功能测试区 ----- end-------
+
+        // ---------效果测试start----------
+        // 毛玻璃材质使用
+        this.test_maoboli();
+        // ---------效果测试end--------
     }
 
     get_element() {
@@ -65,17 +82,22 @@ export default class WzScene {
         this.scene = new THREE.Scene();
     }
 
+    /**
+    *如何保存视点后恢复
+    *
+    */
     init_camera() {
         const { width, height } = this.size;
         this.camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 100000);
-        this.camera.position.x = -26.927091840370167;
-        this.camera.position.z = 30.793487404966882;
-        this.camera.position.y = 19.578588807939695;
+        this.camera.position.set(37.05153270423892, 161.17531084718553, 258.35751388362866);
+        this.camera.rotation.set(-0.3849588417545965, -0.07204303525066746, -0.029156464042305794);
     }
 
     init_renderer() {
         const { width, height } = this.size;
-        this.renderer = new THREE.WebGLRenderer();
+        this.renderer = new THREE.WebGLRenderer({
+            antialias: true, // 抗锯齿
+        });
         this.renderer.setSize(width, height);
         this.renderer.setClearColor(new THREE.Color(0, 0, 0), 1); // 设置背景颜色
         this.dom.appendChild(this.renderer.domElement);
@@ -108,8 +130,8 @@ export default class WzScene {
 
     init_sky() {
         const loader = new THREE.CubeTextureLoader();
-        loader.setPath('/static/img/skybox/');
-        const pictures = ['right.jpg', 'left.jpg', 'top.jpg', 'bottom.jpg', 'front.jpg', 'back.jpg'];
+        loader.setPath('/static/img/skybox/Night/');
+        const pictures = ['posx.jpg', 'negx.jpg', 'posy.jpg', 'negy.jpg', 'posz.jpg', 'negz.jpg'];
         const fun = () => new Promise((resolve) => {
             loader.load(pictures, (t) => resolve(t));
         });
@@ -120,11 +142,9 @@ export default class WzScene {
 
     init_refer_line() {
         const size = 10000;
-        const divisions = 1000;
-        this.gridHelper = new THREE.GridHelper(size, divisions);
-        // console.log('辅助线');
-        // console.log(this.gridHelper);
-        this.gridHelper.position.y = -8;
+        const divisions = 300;
+        this.gridHelper = new THREE.GridHelper(size, divisions, '#8c8c8c', '#8c8c8c');
+        this.gridHelper.position.y = 0;
         this.scene.add(this.gridHelper);
     }
 
@@ -137,6 +157,14 @@ export default class WzScene {
         // 环境光
         const ambient = new THREE.AmbientLight(0x444444);
         this.scene.add(ambient);
+    }
+
+    /**
+    * FIXME 自带的指数雾和线性雾 效果都不好 -- 暂时注释
+    */
+    scene_fog() {
+        // this.scene.fog = new THREE.Fog('#e6e6e6', 1000, 10000);
+        // this.scene.fog = new THREE.FogExp2(0xffffff, 0.0025); // 指数雾
     }
 
     // FIXME 测试完成后删除
@@ -443,9 +471,6 @@ export default class WzScene {
         });
     }
 
-    // 拖拽绘制围墙
-    draw_fence() {}
-
     /**
     *测试贴图
     *aoMap:环境光遮蔽 物体距离越近 光照效果越暗
@@ -507,22 +532,91 @@ export default class WzScene {
         ]);
         const tubeGeometry = new THREE.TubeGeometry(curve, 100, 2, 200, false);
         const texture_loader = new THREE.TextureLoader();
-        const texture = texture_loader.load('/static/img/333.jpg');
+        const texture = texture_loader.load('/static/img/tube.png');
         // 设置阵列模式为 RepeatWrapping
         texture.wrapS = THREE.RepeatWrapping;
         texture.wrapT = THREE.RepeatWrapping;
-        texture.repeat.set(20, 8);
+        texture.repeat.set(100, 4);
         const tubeMaterial = new THREE.MeshPhongMaterial({
             map: texture,
-            // color: 'blue',
             transparent: true,
             opacity: 0.8,
-            side: THREE.DoubleSide,
+            // side: THREE.DoubleSide,
         });
         setInterval(() => {
             texture.offset.x -= 0.05;
         }, 10);
         const tube = new THREE.Mesh(tubeGeometry, tubeMaterial);
         this.scene.add(tube);
+    }
+
+    // 测试group的使用
+    test_group() {
+        const group = new THREE.Group();
+        const geometry_1 = new THREE.BoxGeometry(10, 10, 10);
+        const grometry_2 = new THREE.BoxGeometry(5, 20, 5);
+        const loader = new THREE.TextureLoader();
+        const texture = loader.load('/static/img/grass/brown_mud_leaves_01_diff_1k.jpg');
+        texture.wrapS = THREE.RepeatWrapping;
+        texture.wrapT = THREE.RepeatWrapping;
+        texture.repeat.set(5, 5);
+        const material = new THREE.MeshPhongMaterial({
+            map: texture,
+            opacity: 0.8,
+        });
+        const box_1 = new THREE.Mesh(geometry_1, material);
+        const box_2 = new THREE.Mesh(grometry_2, material);
+        box_1.name = 'test_box';
+        box_2.name = 'test_box';
+        group.add(box_1);
+        group.add(box_2);
+        this.scene.add(group);
+
+        // 对象遍历
+        group.traverse((obj) => {
+            console.log(obj);
+        });
+    }
+
+    /**
+    *拖拽绘制围墙
+    *1.鼠标拖动确定方向
+    *2.连续复制模型
+    */
+    draw_fence() {
+        // 鼠标按下 开始绘制
+        // 鼠标移动 获取交点位置
+    }
+
+    // 测试模型复制
+    test_copy() {
+        const geometry = new THREE.BoxGeometry(10, 10, 10);
+        const material = new THREE.MeshLambertMaterial({
+            color: 'green',
+        });
+        const box = new THREE.Mesh(geometry, material);
+        this.scene.add(box);
+        const box_1 = box.clone();
+        box_1.position.x = 20;
+        this.scene.add(box_1);
+        box_1.scale.x = 2;
+        box_1.material = new THREE.MeshLambertMaterial({
+            color: 'RED',
+        });
+    }
+
+    // 测试毛玻璃效果
+    // 参考 https://twitter.com/kellymilligannz/status/1451113620419473408
+    test_maoboli() {
+        const geometrey = new THREE.BoxGeometry(20, 20, 20);
+        const material = new THREE.MeshPhysicalMaterial({
+            color: 0xffffff,
+            roughness: 0.75,
+            transmission: 1,
+            thickness: 0.5,
+            transparent: true,
+        });
+        const box = new THREE.Mesh(geometrey, material);
+        this.scene.add(box);
     }
 }

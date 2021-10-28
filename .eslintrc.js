@@ -36,6 +36,7 @@ module.exports = {
         camelcase: 'off',
         'class-methods-use-this': 'off',
         'no-debugger': 'off',
+        'consistent-return': 0,
     },
     globals: {
         wzEditor: true,
