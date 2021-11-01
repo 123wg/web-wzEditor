@@ -14,6 +14,7 @@ import { FXAAShader } from 'three/examples/jsm/shaders/FXAAShader';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry';
 import { FontLoader } from 'three/examples/jsm/loaders/FontLoader';
 import { CSG } from 'three-csg-ts'; // 交集并集计算
+import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils'; // 几何体合并操作工具
 import bus from '@/common/EventBus';
 
 export default class WzScene {
@@ -59,14 +60,16 @@ export default class WzScene {
         // 点击绘制建筑盒子
         // this.draw_build_facade();
         // FIXME 测试模型复制 为拖拽做准备
-        // this.test_copy();
+        // this.test_clone();
         //  TODO 拖拽绘制围墙
         // this.draw_fence();
+        // 测试几何体合并
+        this.test_merge_geometry();
         // 交互功能测试区 ----- end-------
 
         // ---------效果测试start----------
         // 毛玻璃材质使用
-        this.test_maoboli();
+        // this.test_maoboli();
         // ---------效果测试end--------
     }
 
@@ -582,14 +585,24 @@ export default class WzScene {
     *拖拽绘制围墙
     *1.鼠标拖动确定方向
     *2.连续复制模型
+    *3.动态改变模型的宽高
     */
     draw_fence() {
-        // 鼠标按下 开始绘制
-        // 鼠标移动 获取交点位置
+        const geometry = new THREE.BoxGeometry(10, 10, 10);
+        const material = new THREE.MeshLambertMaterial({
+            color: 'green',
+        });
+        const box = new THREE.Mesh(geometry, material);
+        this.scene.add(box);
+
+        setTimeout(() => {
+            box.geometry.width = 50;
+            box.updateMatrix();
+        }, 2000);
     }
 
-    // 测试模型复制
-    test_copy() {
+    // 测试模型复制 --clone
+    test_clone() {
         const geometry = new THREE.BoxGeometry(10, 10, 10);
         const material = new THREE.MeshLambertMaterial({
             color: 'green',
@@ -618,5 +631,42 @@ export default class WzScene {
         });
         const box = new THREE.Mesh(geometrey, material);
         this.scene.add(box);
+    }
+
+    /**
+    * 测试网格合并
+    * 1.测试简单的矩形和球形合并
+    * 2.测试有贴图的两个物体合并
+    * 3.测试有旋转角度的物体合并
+    * 4.测试旋转的时候物体合并效果
+    * 5.解决实时更新的问题
+    */
+    test_merge_geometry() {
+        const geometry_1 = new THREE.BoxGeometry(10, 5, 5);
+        const geometry_2 = new THREE.SphereGeometry(10, 32, 16);
+
+        const material_1 = new THREE.MeshLambertMaterial({
+            color: 'green',
+        });
+        // const material_2 = new THREE.MeshLambertMaterial({
+        //     color: 'red',
+        // });
+
+        const box_1 = new THREE.Mesh(geometry_1, material_1);
+        box_1.position.x = 20;
+        // const box_2 = new THREE.Mesh(geometry_2, material_2);
+
+        // console.log(BufferGeometryUtils.computeMorphedAttributes(box_1));
+
+        const geometry = BufferGeometryUtils.mergeBufferGeometries([geometry_1, geometry_2]);
+
+        const box = new THREE.Mesh(geometry, material_1);
+        this.scene.add(box);
+
+        // this.scene.add(box_1);
+        // this.scene.add(box_2);
+
+        console.log(geometry);
+        console.log(box);
     }
 }
