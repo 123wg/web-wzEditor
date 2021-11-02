@@ -641,6 +641,9 @@ export default class WzScene {
     * 5.解决实时更新的问题
     */
     test_merge_geometry() {
+        // 获取中心和包围盒 -- AABB包围盒
+        const box3 = new THREE.Box3();
+
         const material = new THREE.MeshLambertMaterial({
             color: 'green',
         });
@@ -707,6 +710,15 @@ export default class WzScene {
                 // 阵列变换
                 groups.rotation.y = angle;
                 this.scene.add(groups);
+
+                box3.expandByObject(groups);
+                this.scene.children.forEach((item) => {
+                    if (item.name === 'box_wrapper') this.scene.remove(item);
+                });
+                const wrapper = new THREE.Box3Helper(box3, 'red');
+                wrapper.name = 'box_wrapper';
+
+                this.scene.add(wrapper);
             });
         });
     }
