@@ -14,7 +14,6 @@ import { FXAAShader } from 'three/examples/jsm/shaders/FXAAShader';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry';
 import { FontLoader } from 'three/examples/jsm/loaders/FontLoader';
 import { CSG } from 'three-csg-ts'; // 交集并集计算
-import * as BufferGeometryUtils from 'three/examples/jsm/utils/BufferGeometryUtils'; // 几何体合并操作工具
 import bus from '@/common/EventBus';
 
 export default class WzScene {
@@ -634,7 +633,7 @@ export default class WzScene {
     }
 
     /**
-    * 测试网格合并
+    * 测试阵列
     * 1.测试简单的矩形和球形合并
     * 2.测试有贴图的两个物体合并
     * 3.测试有旋转角度的物体合并
@@ -642,31 +641,73 @@ export default class WzScene {
     * 5.解决实时更新的问题
     */
     test_merge_geometry() {
-        const geometry_1 = new THREE.BoxGeometry(10, 5, 5);
-        const geometry_2 = new THREE.SphereGeometry(10, 32, 16);
-
-        const material_1 = new THREE.MeshLambertMaterial({
+        const material = new THREE.MeshLambertMaterial({
             color: 'green',
         });
-        // const material_2 = new THREE.MeshLambertMaterial({
-        //     color: 'red',
-        // });
+        const groups = new THREE.Group();
 
-        const box_1 = new THREE.Mesh(geometry_1, material_1);
-        box_1.position.x = 20;
-        // const box_2 = new THREE.Mesh(geometry_2, material_2);
+        // FIXME 创建开始结束点
+        let points = [];
+        const line_material = new THREE.LineBasicMaterial({
+            color: 'red',
+        });
+        const line_geometry = new THREE.BufferGeometry();
+        const line = new THREE.Line(line_geometry, line_material);
+        this.scene.add(line);
 
-        // console.log(BufferGeometryUtils.computeMorphedAttributes(box_1));
+        // 注册鼠标按下事件
+        this.dom.addEventListener('click', (evt) => {
+            const start = this.get_mouse_plane_pos(evt);
+            start.y = 0;
 
-        const geometry = BufferGeometryUtils.mergeBufferGeometries([geometry_1, geometry_2]);
+            // FIXME 添加开始点
+            points = [];
+            points.push(start);
 
-        const box = new THREE.Mesh(geometry, material_1);
-        this.scene.add(box);
+            // 创建开始点
+            groups.position.x = start.x;
+            groups.position.z = start.z;
+            this.dom.addEventListener('mousemove', (end_evt) => {
+                // 删除之前生成的阵列
+                groups.children.forEach((item) => {
+                    groups.remove(item);
+                });
 
-        // this.scene.add(box_1);
-        // this.scene.add(box_2);
+                const end = this.get_mouse_plane_pos(end_evt);
+                end.y = 0;
 
-        console.log(geometry);
-        console.log(box);
+                // FIXME 添加结束点
+                if (points.length === 2) points.pop();
+                points.push(end);
+                line.geometry.setFromPoints(points);
+
+                const vec1 = new THREE.Vector3(1, 0, 0);
+                // 直接使用sub方法会改变之前的对象
+                const vec2 = end.clone().sub(start.clone());
+
+                let angle = vec2.angleTo(vec1);
+                const direc = vec2.cross(vec1).y;
+                if (direc > 0) angle = 0 - angle;
+
+                const dis = start.distanceTo(end); // 计算两点之间的距离
+
+                const per_width = 10;// 计算包围盒的width
+                let number = Math.floor(dis / per_width);// 计算阵列的数量
+                if (number <= 0) number = 1;
+
+                // 开始生成阵列
+                for (let i = 0; i < number; i += 1) {
+                    const geometry = new THREE.BoxGeometry(10, 5, 5);
+                    const box = new THREE.Mesh(geometry, material);
+                    box.name = 'move_box';
+                    box.position.x += i * 10;
+                    groups.add(box);
+                }
+
+                // 阵列变换
+                groups.rotation.y = angle;
+                this.scene.add(groups);
+            });
+        });
     }
 }
