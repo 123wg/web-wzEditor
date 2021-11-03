@@ -38,7 +38,7 @@ export default class WzScene {
         // this.add_box();// FIXME  添加立方体 --测试完成后删除
         // this.add_gltf();
         // this.listen_create_model();
-        // // this.add_floor(); // 添加地板
+        this.add_floor(); // 添加地板
         // this.select_model(); // 选中模型外发光
 
         // 基础功能测试------start-----
@@ -63,7 +63,9 @@ export default class WzScene {
         //  TODO 拖拽绘制围墙
         // this.draw_fence();
         // 测试几何体合并
-        this.test_merge_geometry();
+        // this.test_merge_geometry();
+        // 拖拽绘制线条
+        // this.drag_draw_line();
         // 交互功能测试区 ----- end-------
 
         // ---------效果测试start----------
@@ -641,84 +643,83 @@ export default class WzScene {
     * 5.解决实时更新的问题
     */
     test_merge_geometry() {
-        // 获取中心和包围盒 -- AABB包围盒
-        const box3 = new THREE.Box3();
-
+        // 数据准备
+        let start = new THREE.Vector3();
+        let end = new THREE.Vector3();
+        const groups = new THREE.Group();
         const material = new THREE.MeshLambertMaterial({
             color: 'green',
         });
-        const groups = new THREE.Group();
 
-        // FIXME 创建开始结束点
-        let points = [];
-        const line_material = new THREE.LineBasicMaterial({
-            color: 'red',
-        });
-        const line_geometry = new THREE.BufferGeometry();
-        const line = new THREE.Line(line_geometry, line_material);
-        this.scene.add(line);
+        // 删除所有的几何体
+        const clear_group = () => {
+            groups.remove(...groups.children);
+        };
 
-        // 注册鼠标按下事件
-        this.dom.addEventListener('click', (evt) => {
-            const start = this.get_mouse_plane_pos(evt);
+        // 鼠标移动方法
+        const moveFun = (end_evt) => {
+            clear_group();
+            end = this.get_mouse_plane_pos(end_evt);
+            end.y = 0;
+            const vec1 = new THREE.Vector3(1, 0, 0);
+            const vec2 = end.clone().sub(start.clone());// 直接使用sub方法会改变之前的对象
+            let angle = vec2.angleTo(vec1);
+            const direc = vec2.cross(vec1).y;
+            if (direc > 0) angle = 0 - angle;
+            const dis = start.distanceTo(end); // 计算两点之间的距离
+            const per_width = 10;// 计算包围盒的width
+            let number = Math.floor(dis / per_width);// 计算阵列的数量
+            if (number <= 0) number = 1;
+            for (let i = 0; i < number; i += 1) {
+                const geometry = new THREE.BoxGeometry(10, 5, 5);
+                const box = new THREE.Mesh(geometry, material);
+                box.name = 'move_box';
+                box.position.x += i * 10;
+                box.position.y = 5;
+                groups.add(box);
+            }
+
+            // FIXME 这里不使用group 的方法 考虑修改为 几何体合并
+            groups.rotation.y = angle;// 阵列变换
+            this.scene.add(groups);
+        };
+
+        // 点击方法
+        const clickFun = (evt) => {
+            clear_group();
+            this.dom.removeEventListener('mousemove', moveFun);
+            start = this.get_mouse_plane_pos(evt);
             start.y = 0;
-
-            // FIXME 添加开始点
-            points = [];
-            points.push(start);
 
             // 创建开始点
             groups.position.x = start.x;
             groups.position.z = start.z;
-            this.dom.addEventListener('mousemove', (end_evt) => {
-                // 删除之前生成的阵列
-                groups.children.forEach((item) => {
-                    groups.remove(item);
-                });
+            this.dom.addEventListener('mousemove', moveFun);
+        };
 
+        // 鼠标移动方法
+        this.dom.addEventListener('click', clickFun);
+    }
+
+    // 拖拽绘制线条
+    drag_draw_line() {
+        let points = [];
+        const line_geometry = new THREE.BufferGeometry();
+        const line_material = new THREE.LineBasicMaterial({ color: 'red' });
+        const line = new THREE.Line(line_geometry, line_material);
+        this.scene.add(line);
+
+        this.dom.addEventListener('click', (evt) => {
+            points = [];
+            const start = this.get_mouse_plane_pos(evt);
+            start.y = 0;
+            points.push(start);
+            this.dom.addEventListener('mousemove', (end_evt) => {
                 const end = this.get_mouse_plane_pos(end_evt);
                 end.y = 0;
-
-                // FIXME 添加结束点
                 if (points.length === 2) points.pop();
                 points.push(end);
                 line.geometry.setFromPoints(points);
-
-                const vec1 = new THREE.Vector3(1, 0, 0);
-                // 直接使用sub方法会改变之前的对象
-                const vec2 = end.clone().sub(start.clone());
-
-                let angle = vec2.angleTo(vec1);
-                const direc = vec2.cross(vec1).y;
-                if (direc > 0) angle = 0 - angle;
-
-                const dis = start.distanceTo(end); // 计算两点之间的距离
-
-                const per_width = 10;// 计算包围盒的width
-                let number = Math.floor(dis / per_width);// 计算阵列的数量
-                if (number <= 0) number = 1;
-
-                // 开始生成阵列
-                for (let i = 0; i < number; i += 1) {
-                    const geometry = new THREE.BoxGeometry(10, 5, 5);
-                    const box = new THREE.Mesh(geometry, material);
-                    box.name = 'move_box';
-                    box.position.x += i * 10;
-                    groups.add(box);
-                }
-
-                // 阵列变换
-                groups.rotation.y = angle;
-                this.scene.add(groups);
-
-                box3.expandByObject(groups);
-                this.scene.children.forEach((item) => {
-                    if (item.name === 'box_wrapper') this.scene.remove(item);
-                });
-                const wrapper = new THREE.Box3Helper(box3, 'red');
-                wrapper.name = 'box_wrapper';
-
-                this.scene.add(wrapper);
             });
         });
     }
