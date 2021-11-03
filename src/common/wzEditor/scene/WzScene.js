@@ -716,6 +716,7 @@ export default class WzScene {
                     if (item.name === 'box_wrapper') this.scene.remove(item);
                 });
                 const wrapper = new THREE.Box3Helper(box3, 'red');
+                wrapper.updateMatrixWorld();
                 wrapper.name = 'box_wrapper';
 
                 this.scene.add(wrapper);
