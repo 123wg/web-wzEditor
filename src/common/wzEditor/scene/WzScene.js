@@ -6,6 +6,8 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+// import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
+import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass';
@@ -34,12 +36,13 @@ export default class WzScene {
 
         this.init_sky(); // 初始化天空盒
         this.init_refer_line();// 初始化参考线
+        this.add_axes();// 添加辅助线
 
         // this.add_box();// FIXME  添加立方体 --测试完成后删除
         // this.add_gltf();
         // this.listen_create_model();
-        this.add_floor(); // 添加地板
-        // this.select_model(); // 选中模型外发光
+        // this.add_floor(); // 添加地板
+        // this.select_model(); // 开启光线追踪
 
         // 基础功能测试------start-----
         // 测试贴图
@@ -61,7 +64,10 @@ export default class WzScene {
         // FIXME 测试模型复制 为拖拽做准备
         // this.test_clone();
         //  TODO 拖拽绘制围墙
-        // this.draw_fence();
+        this.draw_fence();
+        // 测试改变缩放中心点
+        // this.change_scale_center();
+
         // 测试几何体合并
         // this.test_merge_geometry();
         // 拖拽绘制线条
@@ -152,6 +158,12 @@ export default class WzScene {
         this.scene.add(this.gridHelper);
     }
 
+    // 添加坐标辅助线 红-x 蓝-z 绿-y
+    add_axes() {
+        const axesHelper = new THREE.AxesHelper(500);
+        this.scene.add(axesHelper);
+    }
+
     // 初始化灯光
     init_light() {
         // 点光源
@@ -159,7 +171,7 @@ export default class WzScene {
         point.position.set(400, 200, 300); // 点光源位置
         this.scene.add(point); // 点光源添加到场景中
         // 环境光
-        const ambient = new THREE.AmbientLight(0x444444);
+        const ambient = new THREE.AmbientLight(0xcccccc);
         this.scene.add(ambient);
     }
 
@@ -269,11 +281,11 @@ export default class WzScene {
         let selectedObjects = [];
         composer.addPass(renderPass);
         const outlinePass = new OutlinePass(new THREE.Vector2(width, height), this.scene, this.camera);
-        outlinePass.edgeStrength = 5;// 包围线浓度
+        outlinePass.edgeStrength = 2;// 包围线浓度
         outlinePass.edgeGlow = 0.5;// 边缘线范围
         outlinePass.edgeThickness = 1;// 边缘线浓度
         outlinePass.pulsePeriod = 3;// 包围线闪烁频率
-        outlinePass.visibleEdgeColor.set('#ffffff');// 包围线颜色
+        outlinePass.visibleEdgeColor.set('#ff5050');// 包围线颜色
         outlinePass.hiddenEdgeColor.set('#190a05');// 被遮挡的边界线颜色
         composer.addPass(outlinePass);
         const effectFXAA = new ShaderPass(FXAAShader);
@@ -582,24 +594,104 @@ export default class WzScene {
         });
     }
 
-    /**
-    *拖拽绘制围墙
-    *1.鼠标拖动确定方向
-    *2.连续复制模型
-    *3.动态改变模型的宽高
-    */
+    // 绘制围墙
     draw_fence() {
-        const geometry = new THREE.BoxGeometry(10, 10, 10);
+        const loader = new FBXLoader();
+        loader.load('/static/model/fence/fence.FBX', (obj) => {
+            // 位置纠正
+            obj.traverse((item) => {
+                if (item.type === 'Mesh') {
+                    item.rotation.z = Math.PI / 2;
+                }
+            });
+
+            const box3 = new THREE.Box3();
+            box3.expandByObject(obj);
+            const { max, min } = box3;
+            const per_width = max.x - min.x;
+            const per_height = max.y - min.y;
+            obj.translateY(per_height / 2);
+
+            let start = new THREE.Vector3();
+            let end = new THREE.Vector3();
+            const group = new THREE.Group();
+
+            // // 清除现有的
+            const clear_group = () => {
+                group.remove(...group.children);
+            };
+            const moveFun = (e_evt) => {
+                clear_group();
+                end = this.get_mouse_plane_pos(e_evt);
+                end.y = 0;
+                // 计算两点之间的距离
+                const dis = start.distanceTo(end);
+
+                // 计算旋转的角度
+                const vec1 = new THREE.Vector3(1, 0, 0);
+                const vec2 = end.clone().sub(start.clone());// 直接使用sub方法会改变之前的对象
+                let angle = vec2.angleTo(vec1);
+                const direc = vec2.cross(vec1).y;
+                if (direc > 0) angle = 0 - angle;
+
+                const number = dis / per_width;
+                const number_bottom = Math.floor(number);// 计算阵列的数量
+
+                const number_top = Math.ceil(number);
+                // 总数 判断是否有小数 有的话 最后一个缩放
+
+                // // 生成的时候需要重新计算w
+                // if (number <= 0) number = 1;
+                for (let i = 0; i < number_top; i += 1) {
+                    const wrapper_group = new THREE.Group();
+                    const temp = obj.clone();
+                    temp.position.x = per_width / 2;
+                    wrapper_group.add(temp);
+                    wrapper_group.position.x = i * per_width;
+
+                    // 判断上下数量是否相等 不想等的情况下 缩放最后一个
+                    if (number_bottom !== number_top && i === number_top - 1) {
+                        wrapper_group.scale.x = number - number_bottom;
+                    }
+                    group.add(wrapper_group);
+                }
+                group.rotation.y = angle;
+                this.scene.add(group);
+            };
+
+            // // 注册鼠标点击事件
+            const clickFun = (s_evt) => {
+                this.dom.removeEventListener('mousemove', moveFun);
+                clear_group();
+                start = this.get_mouse_plane_pos(s_evt);
+                group.position.set(start.x, start.y, start.z);
+                this.dom.addEventListener('mousemove', moveFun);
+            };
+
+            this.dom.addEventListener('click', clickFun);
+        });
+    }
+
+    /**
+    *@description:改变缩放中心
+    * 将物体的中心移动
+    * 放入group中 对group进行缩放
+    */
+    change_scale_center() {
+        const group = new THREE.Group();
+        const geometry = new THREE.BoxGeometry(80, 10, 5);
         const material = new THREE.MeshLambertMaterial({
-            color: 'green',
+            color: 'red',
         });
         const box = new THREE.Mesh(geometry, material);
-        this.scene.add(box);
-
-        setTimeout(() => {
-            box.geometry.width = 50;
-            box.updateMatrix();
-        }, 2000);
+        box.position.x = 40;
+        group.add(box);
+        this.scene.add(group);
+        let scalex = 1;
+        setInterval(() => {
+            scalex -= 0.001;
+            group.scale.set(scalex, 1, 1);
+        }, 18);
     }
 
     // 测试模型复制 --clone
@@ -671,11 +763,11 @@ export default class WzScene {
             let number = Math.floor(dis / per_width);// 计算阵列的数量
             if (number <= 0) number = 1;
             for (let i = 0; i < number; i += 1) {
-                const geometry = new THREE.BoxGeometry(10, 5, 5);
+                const geometry = new THREE.BoxGeometry(10, 50, 5);
                 const box = new THREE.Mesh(geometry, material);
                 box.name = 'move_box';
                 box.position.x += i * 10;
-                box.position.y = 5;
+                box.position.y = 25;
                 groups.add(box);
             }
 
