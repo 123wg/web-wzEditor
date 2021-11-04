@@ -36,15 +36,15 @@ export default {
             curActive: 0,
             material_list: [
                 {
-                    label: '人物',
+                    label: '室外',
                     children: [
                         {
-                            group: '美少女',
+                            group: '交互组件',
                             children: [
                                 {
                                     img_url: '/static/img/matilda.png',
                                     model_url: '/static/model/matilda/scene.gltf',
-                                    name: '小萝莉',
+                                    name: '小大姐',
                                 },
                             ],
                         },

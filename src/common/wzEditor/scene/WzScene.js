@@ -604,7 +604,7 @@ export default class WzScene {
         let is_drawing = false; // 当前是否在绘制状态
         const loader = new FBXLoader();
         loader.load('/static/model/fence/fence.FBX', (obj) => {
-            // 位置纠正
+            // FIXME 根据默认的朝向确定
             obj.traverse((item) => {
                 if (item.type === 'Mesh') {
                     item.rotation.z = Math.PI / 2;
@@ -622,7 +622,7 @@ export default class WzScene {
             let end = new THREE.Vector3();
             let group = new THREE.Group();
 
-            // // 清除现有的
+            // 清除现有的
             const clear_group = () => {
                 group.remove(...group.children);
             };
@@ -676,7 +676,6 @@ export default class WzScene {
                     is_drawing = false;
                 }
             };
-
             this.dom.addEventListener('click', clickFun);
         });
     }
