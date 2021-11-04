@@ -171,8 +171,13 @@ export default class WzScene {
         point.position.set(400, 200, 300); // 点光源位置
         this.scene.add(point); // 点光源添加到场景中
         // 环境光
-        const ambient = new THREE.AmbientLight(0xcccccc);
+        const ambient = new THREE.AmbientLight(0xffffff);
         this.scene.add(ambient);
+
+        // 平行光
+        const light = new THREE.DirectionalLight();
+        light.position.set(200, 500, 300);
+        this.scene.add(light);
     }
 
     /**
@@ -596,6 +601,7 @@ export default class WzScene {
 
     // 绘制围墙
     draw_fence() {
+        let is_drawing = false; // 当前是否在绘制状态
         const loader = new FBXLoader();
         loader.load('/static/model/fence/fence.FBX', (obj) => {
             // 位置纠正
@@ -614,7 +620,7 @@ export default class WzScene {
 
             let start = new THREE.Vector3();
             let end = new THREE.Vector3();
-            const group = new THREE.Group();
+            let group = new THREE.Group();
 
             // // 清除现有的
             const clear_group = () => {
@@ -636,12 +642,8 @@ export default class WzScene {
 
                 const number = dis / per_width;
                 const number_bottom = Math.floor(number);// 计算阵列的数量
-
                 const number_top = Math.ceil(number);
                 // 总数 判断是否有小数 有的话 最后一个缩放
-
-                // // 生成的时候需要重新计算w
-                // if (number <= 0) number = 1;
                 for (let i = 0; i < number_top; i += 1) {
                     const wrapper_group = new THREE.Group();
                     const temp = obj.clone();
@@ -661,11 +663,18 @@ export default class WzScene {
 
             // // 注册鼠标点击事件
             const clickFun = (s_evt) => {
-                this.dom.removeEventListener('mousemove', moveFun);
-                clear_group();
-                start = this.get_mouse_plane_pos(s_evt);
-                group.position.set(start.x, start.y, start.z);
-                this.dom.addEventListener('mousemove', moveFun);
+                if (!is_drawing) { // 进入编辑状态
+                    clear_group();
+                    start = this.get_mouse_plane_pos(s_evt);
+                    group.position.set(start.x, start.y, start.z);
+                    this.dom.addEventListener('mousemove', moveFun);
+                    is_drawing = true;
+                } else { // 退出编辑状态
+                    group = new THREE.Group();
+                    clear_group();
+                    this.dom.removeEventListener('mousemove', moveFun);
+                    is_drawing = false;
+                }
             };
 
             this.dom.addEventListener('click', clickFun);
