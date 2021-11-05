@@ -36,6 +36,7 @@ export default class WzScene {
 
         this.init_sky(); // 初始化天空盒
         this.init_refer_line();// 初始化参考线
+
         this.add_axes();// 添加辅助线
 
         // this.add_box();// FIXME  添加立方体 --测试完成后删除
@@ -136,6 +137,9 @@ export default class WzScene {
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
         this.controls.enableDamping = true; // 开启惯性
         this.controls.dampingFactor = 0.8;
+        // this.controls.addEventListener('click', (evt) => {
+        //     evt.preventDefault();
+        // });
     }
 
     init_sky() {
@@ -599,7 +603,12 @@ export default class WzScene {
         });
     }
 
-    // 绘制围墙
+    /**
+    *@description: 绘制围墙
+    *点击物料区 开启绘制围墙
+    *绑定点击事件和鼠标移动事件(判断是否在绘制围墙状态)，禁用轨迹球控制
+    *绑定右击 退出绘制围墙，释放轨迹球控制
+    */
     draw_fence() {
         let is_drawing = false; // 当前是否在绘制状态
         const loader = new FBXLoader();
@@ -627,6 +636,7 @@ export default class WzScene {
                 group.remove(...group.children);
             };
             const moveFun = (e_evt) => {
+                e_evt.preventDefault();
                 clear_group();
                 end = this.get_mouse_plane_pos(e_evt);
                 end.y = 0;
@@ -661,8 +671,9 @@ export default class WzScene {
                 this.scene.add(group);
             };
 
-            // // 注册鼠标点击事件
+            // TODO 鼠标点击事件和拖拽事件的冲突处理
             const clickFun = (s_evt) => {
+                this.controls.enabled = false;
                 if (!is_drawing) { // 进入编辑状态
                     clear_group();
                     start = this.get_mouse_plane_pos(s_evt);
@@ -682,8 +693,8 @@ export default class WzScene {
 
     /**
     *@description:改变缩放中心
-    * 将物体的中心移动
-    * 放入group中 对group进行缩放
+    * 将物体的中心向右移动 但是group的中心不变 x = 0
+    * 缩放的时候根据group的中心点缩放
     */
     change_scale_center() {
         const group = new THREE.Group();
