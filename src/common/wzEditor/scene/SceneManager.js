@@ -5,17 +5,19 @@
 * */
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import DrawManager from './DrawManager';
 
 class SceneManager {
     constructor(app) {
         this.app = app;
-        this.scene = null; // 场景
-        this.camera = null; // 相机
-        this.renderer = null;// 渲染器
-        this.controls = null; // 控制器
+        this.scene = {}; // 场景
+        this.camera = {}; // 相机
+        this.renderer = {};// 渲染器
+        this.controls = {}; // 控制器
         this.dom_container = ''; // 绑定的domId
-        this.dom = null; // 绑定的dom节点
-        this.render_size = {};
+        this.dom = {}; // 绑定的dom节点
+        this.render_size = {}; // 渲染区大小
+        this.draw_manager = null; // 绘图控制器
     }
 
     // 初始化方法
@@ -26,11 +28,14 @@ class SceneManager {
         this._init_camera();
         this._init_render();
         this._init_refer_line();
+        this._add_axes();
         this._init_sky(attr.skyUrl);
         this._init_mouse_control();
         this._init_light();
         this._start_render();
         this._on_resize();
+
+        this.draw_manager = new DrawManager(this.app, this);
     }
 
     // 初始化dom节点
@@ -66,6 +71,12 @@ class SceneManager {
         this.gridHelper = new THREE.GridHelper(size, divisions, '#8c8c8c', '#8c8c8c');
         this.gridHelper.position.y = 0;
         this.scene.add(this.gridHelper);
+    }
+
+    // 坐标轴辅助线
+    _add_axes() {
+        const axesHelper = new THREE.AxesHelper(500);
+        this.scene.add(axesHelper);
     }
 
     // 初始化天空盒
@@ -115,12 +126,19 @@ class SceneManager {
     // 窗口自适应
     _on_resize() {
         const resizeFun = () => {
+            this._init_dom();
             const { width, height } = this.render_size;
             this.renderer.setSize(width, height);
             this.camera.aspect = width / height;
             this.camera.updateProjectionMatrix();
         };
         window.addEventListener('resize', resizeFun, false);
+    }
+
+    // 禁止场景旋转
+    ban_scene_rotate() {
+        console.log('禁止旋转');
+        this.controls.enableRotate = false;
     }
 }
 

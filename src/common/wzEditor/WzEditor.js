@@ -18,6 +18,7 @@ export default class WzEditor {
         this.command_manager = new CommandManager(this);
         this.material_manager = new MaterialManager(this);
         this.attr_manager = new AttrManager(this);
+        this.is_create_model = false;// 是否正在创建模型
     }
 
     // 编辑器初始化
@@ -26,5 +27,10 @@ export default class WzEditor {
             container: 'editor-main',
             skyUrl: '/static/img/skybox/Night/',
         });
+    }
+
+    // 通知开始创建模型
+    create_model(obj) {
+        this.scene_manager.draw_manager.begin_draw(obj);
     }
 }
