@@ -59,7 +59,8 @@
             </div>
         </div>
         <div class="tool-middle">
-            三维可视化编辑器
+            <!-- 三维可视化编辑器 -->
+            场景测试
         </div>
         <div class="tool-right"></div>
     </div>

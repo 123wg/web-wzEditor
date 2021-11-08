@@ -15,7 +15,7 @@
                             {{item.group}}
                         </template>
                         <div class="group-item-list">
-                            <div class="item" v-for="(items,indexs) in item.children" :key="indexs" draggable="true" @mousedown="create_model(items)">
+                            <div class="item" v-for="(items,indexs) in item.children" :key="indexs" @click="create_model(items)">
                                 <img :src="items.img_url">
                             </div>
                         </div>
@@ -27,7 +27,8 @@
 </template>
 
 <script>
-import bus from '@/common/EventBus';
+// FIXME 暂时注释，不适用这种方式
+// import bus from '@/common/EventBus';
 
 export default {
     components: {},
@@ -36,15 +37,27 @@ export default {
             curActive: 0,
             material_list: [
                 {
-                    label: '人物',
+                    label: '室外',
                     children: [
                         {
-                            group: '美少女',
+                            group: '圈地',
                             children: [
                                 {
-                                    img_url: '/static/img/matilda.png',
-                                    model_url: '/static/model/matilda/scene.gltf',
-                                    name: '小萝莉',
+                                    img_url: '/static/img/ground.png',
+                                    // model_url: '/static/model/matilda/scene.gltf',
+                                    name: '绘制地板',
+                                    mode: 'drag_drop', // 执行的方法 --枚举类管理 圈地(drag_drop) 点击摆放(click_display) 绘制围墙(draw_fence)
+                                },
+                            ],
+                        },
+                        {
+                            group: '围墙',
+                            children: [
+                                {
+                                    img_url: '/static/img/fence_01.png',
+                                    model_url: '/static/model/fence/fence.fbx',
+                                    name: '围栏',
+                                    mode: 'draw_fence', // 执行的方法 --枚举类管理 圈地(drag_drop) 点击摆放(click_display) 绘制围墙(draw_fence)
                                 },
                             ],
                         },
@@ -56,8 +69,10 @@ export default {
     methods: {
         create_model(obj) {
             console.log('开始创建模型');
-            console.log(bus);
-            bus.$emit('create_model', obj);
+            wzEditor.create_model(obj);
+            // console.log('开始创建模型');
+            // console.log(bus);
+            // bus.$emit('create_model', obj);
             // evt.dataTransfer.setData('model_info', JSON.stringify(obj));
             // console.log(JSON.parse(evt.dataTransfer.getData('model_info')));
         },

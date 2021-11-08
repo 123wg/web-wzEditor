@@ -37,6 +37,7 @@ module.exports = {
         'class-methods-use-this': 'off',
         'no-debugger': 'off',
         'consistent-return': 0,
+        'no-underscore-dangle': 0,
     },
     globals: {
         wzEditor: true,

@@ -34,6 +34,7 @@ export default defineComponent({
     },
     mounted() {
         wzEditor = new WzEditor();
+        wzEditor.init();
     },
 });
 </script>

@@ -6,6 +6,8 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+// import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
+import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass';
@@ -35,11 +37,13 @@ export default class WzScene {
         this.init_sky(); // 初始化天空盒
         this.init_refer_line();// 初始化参考线
 
+        this.add_axes();// 添加辅助线
+
         // this.add_box();// FIXME  添加立方体 --测试完成后删除
         // this.add_gltf();
         // this.listen_create_model();
-        // // this.add_floor(); // 添加地板
-        // this.select_model(); // 选中模型外发光
+        // this.add_floor(); // 添加地板
+        // this.select_model(); // 开启光线追踪
 
         // 基础功能测试------start-----
         // 测试贴图
@@ -61,9 +65,14 @@ export default class WzScene {
         // FIXME 测试模型复制 为拖拽做准备
         // this.test_clone();
         //  TODO 拖拽绘制围墙
-        // this.draw_fence();
+        this.draw_fence();
+        // 测试改变缩放中心点
+        // this.change_scale_center();
+
         // 测试几何体合并
-        this.test_merge_geometry();
+        // this.test_merge_geometry();
+        // 拖拽绘制线条
+        // this.drag_draw_line();
         // 交互功能测试区 ----- end-------
 
         // ---------效果测试start----------
@@ -128,6 +137,9 @@ export default class WzScene {
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
         this.controls.enableDamping = true; // 开启惯性
         this.controls.dampingFactor = 0.8;
+        // this.controls.addEventListener('click', (evt) => {
+        //     evt.preventDefault();
+        // });
     }
 
     init_sky() {
@@ -150,6 +162,12 @@ export default class WzScene {
         this.scene.add(this.gridHelper);
     }
 
+    // 添加坐标辅助线 红-x 蓝-z 绿-y
+    add_axes() {
+        const axesHelper = new THREE.AxesHelper(500);
+        this.scene.add(axesHelper);
+    }
+
     // 初始化灯光
     init_light() {
         // 点光源
@@ -157,8 +175,13 @@ export default class WzScene {
         point.position.set(400, 200, 300); // 点光源位置
         this.scene.add(point); // 点光源添加到场景中
         // 环境光
-        const ambient = new THREE.AmbientLight(0x444444);
+        const ambient = new THREE.AmbientLight(0xffffff);
         this.scene.add(ambient);
+
+        // 平行光
+        const light = new THREE.DirectionalLight();
+        light.position.set(200, 500, 300);
+        this.scene.add(light);
     }
 
     /**
@@ -267,11 +290,11 @@ export default class WzScene {
         let selectedObjects = [];
         composer.addPass(renderPass);
         const outlinePass = new OutlinePass(new THREE.Vector2(width, height), this.scene, this.camera);
-        outlinePass.edgeStrength = 5;// 包围线浓度
+        outlinePass.edgeStrength = 2;// 包围线浓度
         outlinePass.edgeGlow = 0.5;// 边缘线范围
         outlinePass.edgeThickness = 1;// 边缘线浓度
         outlinePass.pulsePeriod = 3;// 包围线闪烁频率
-        outlinePass.visibleEdgeColor.set('#ffffff');// 包围线颜色
+        outlinePass.visibleEdgeColor.set('#ff5050');// 包围线颜色
         outlinePass.hiddenEdgeColor.set('#190a05');// 被遮挡的边界线颜色
         composer.addPass(outlinePass);
         const effectFXAA = new ShaderPass(FXAAShader);
@@ -581,23 +604,113 @@ export default class WzScene {
     }
 
     /**
-    *拖拽绘制围墙
-    *1.鼠标拖动确定方向
-    *2.连续复制模型
-    *3.动态改变模型的宽高
+    *@description: 绘制围墙
+    *点击物料区 开启绘制围墙
+    *绑定点击事件和鼠标移动事件(判断是否在绘制围墙状态)，禁用轨迹球控制
+    *绑定右击 退出绘制围墙，释放轨迹球控制
     */
     draw_fence() {
-        const geometry = new THREE.BoxGeometry(10, 10, 10);
+        let is_drawing = false; // 当前是否在绘制状态
+        const loader = new FBXLoader();
+        loader.load('/static/model/fence/fence.FBX', (obj) => {
+            // FIXME 根据默认的朝向确定
+            obj.traverse((item) => {
+                if (item.type === 'Mesh') {
+                    item.rotation.z = Math.PI / 2;
+                }
+            });
+
+            const box3 = new THREE.Box3();
+            box3.expandByObject(obj);
+            const { max, min } = box3;
+            const per_width = max.x - min.x;
+            const per_height = max.y - min.y;
+            obj.translateY(per_height / 2);
+
+            let start = new THREE.Vector3();
+            let end = new THREE.Vector3();
+            let group = new THREE.Group();
+
+            // 清除现有的
+            const clear_group = () => {
+                group.remove(...group.children);
+            };
+            const moveFun = (e_evt) => {
+                e_evt.preventDefault();
+                clear_group();
+                end = this.get_mouse_plane_pos(e_evt);
+                end.y = 0;
+                // 计算两点之间的距离
+                const dis = start.distanceTo(end);
+
+                // 计算旋转的角度
+                const vec1 = new THREE.Vector3(1, 0, 0);
+                const vec2 = end.clone().sub(start.clone());// 直接使用sub方法会改变之前的对象
+                let angle = vec2.angleTo(vec1);
+                const direc = vec2.cross(vec1).y;
+                if (direc > 0) angle = 0 - angle;
+
+                const number = dis / per_width;
+                const number_bottom = Math.floor(number);// 计算阵列的数量
+                const number_top = Math.ceil(number);
+                // 总数 判断是否有小数 有的话 最后一个缩放
+                for (let i = 0; i < number_top; i += 1) {
+                    const wrapper_group = new THREE.Group();
+                    const temp = obj.clone();
+                    temp.position.x = per_width / 2;
+                    wrapper_group.add(temp);
+                    wrapper_group.position.x = i * per_width;
+
+                    // 判断上下数量是否相等 不想等的情况下 缩放最后一个
+                    if (number_bottom !== number_top && i === number_top - 1) {
+                        wrapper_group.scale.x = number - number_bottom;
+                    }
+                    group.add(wrapper_group);
+                }
+                group.rotation.y = angle;
+                this.scene.add(group);
+            };
+
+            // TODO 鼠标点击事件和拖拽事件的冲突处理
+            const clickFun = (s_evt) => {
+                this.controls.enabled = false;
+                if (!is_drawing) { // 进入编辑状态
+                    clear_group();
+                    start = this.get_mouse_plane_pos(s_evt);
+                    group.position.set(start.x, start.y, start.z);
+                    this.dom.addEventListener('mousemove', moveFun);
+                    is_drawing = true;
+                } else { // 退出编辑状态
+                    group = new THREE.Group();
+                    clear_group();
+                    this.dom.removeEventListener('mousemove', moveFun);
+                    is_drawing = false;
+                }
+            };
+            this.dom.addEventListener('click', clickFun);
+        });
+    }
+
+    /**
+    *@description:改变缩放中心
+    * 将物体的中心向右移动 但是group的中心不变 x = 0
+    * 缩放的时候根据group的中心点缩放
+    */
+    change_scale_center() {
+        const group = new THREE.Group();
+        const geometry = new THREE.BoxGeometry(80, 10, 5);
         const material = new THREE.MeshLambertMaterial({
-            color: 'green',
+            color: 'red',
         });
         const box = new THREE.Mesh(geometry, material);
-        this.scene.add(box);
-
-        setTimeout(() => {
-            box.geometry.width = 50;
-            box.updateMatrix();
-        }, 2000);
+        box.position.x = 40;
+        group.add(box);
+        this.scene.add(group);
+        let scalex = 1;
+        setInterval(() => {
+            scalex -= 0.001;
+            group.scale.set(scalex, 1, 1);
+        }, 18);
     }
 
     // 测试模型复制 --clone
@@ -641,85 +754,83 @@ export default class WzScene {
     * 5.解决实时更新的问题
     */
     test_merge_geometry() {
-        // 获取中心和包围盒 -- AABB包围盒
-        const box3 = new THREE.Box3();
-
+        // 数据准备
+        let start = new THREE.Vector3();
+        let end = new THREE.Vector3();
+        const groups = new THREE.Group();
         const material = new THREE.MeshLambertMaterial({
             color: 'green',
         });
-        const groups = new THREE.Group();
 
-        // FIXME 创建开始结束点
-        let points = [];
-        const line_material = new THREE.LineBasicMaterial({
-            color: 'red',
-        });
-        const line_geometry = new THREE.BufferGeometry();
-        const line = new THREE.Line(line_geometry, line_material);
-        this.scene.add(line);
+        // 删除所有的几何体
+        const clear_group = () => {
+            groups.remove(...groups.children);
+        };
 
-        // 注册鼠标按下事件
-        this.dom.addEventListener('click', (evt) => {
-            const start = this.get_mouse_plane_pos(evt);
+        // 鼠标移动方法
+        const moveFun = (end_evt) => {
+            clear_group();
+            end = this.get_mouse_plane_pos(end_evt);
+            end.y = 0;
+            const vec1 = new THREE.Vector3(1, 0, 0);
+            const vec2 = end.clone().sub(start.clone());// 直接使用sub方法会改变之前的对象
+            let angle = vec2.angleTo(vec1);
+            const direc = vec2.cross(vec1).y;
+            if (direc > 0) angle = 0 - angle;
+            const dis = start.distanceTo(end); // 计算两点之间的距离
+            const per_width = 10;// 计算包围盒的width
+            let number = Math.floor(dis / per_width);// 计算阵列的数量
+            if (number <= 0) number = 1;
+            for (let i = 0; i < number; i += 1) {
+                const geometry = new THREE.BoxGeometry(10, 50, 5);
+                const box = new THREE.Mesh(geometry, material);
+                box.name = 'move_box';
+                box.position.x += i * 10;
+                box.position.y = 25;
+                groups.add(box);
+            }
+
+            // FIXME 这里不使用group 的方法 考虑修改为 几何体合并
+            groups.rotation.y = angle;// 阵列变换
+            this.scene.add(groups);
+        };
+
+        // 点击方法
+        const clickFun = (evt) => {
+            clear_group();
+            this.dom.removeEventListener('mousemove', moveFun);
+            start = this.get_mouse_plane_pos(evt);
             start.y = 0;
-
-            // FIXME 添加开始点
-            points = [];
-            points.push(start);
 
             // 创建开始点
             groups.position.x = start.x;
             groups.position.z = start.z;
-            this.dom.addEventListener('mousemove', (end_evt) => {
-                // 删除之前生成的阵列
-                groups.children.forEach((item) => {
-                    groups.remove(item);
-                });
+            this.dom.addEventListener('mousemove', moveFun);
+        };
 
+        // 鼠标移动方法
+        this.dom.addEventListener('click', clickFun);
+    }
+
+    // 拖拽绘制线条
+    drag_draw_line() {
+        let points = [];
+        const line_geometry = new THREE.BufferGeometry();
+        const line_material = new THREE.LineBasicMaterial({ color: 'red' });
+        const line = new THREE.Line(line_geometry, line_material);
+        this.scene.add(line);
+
+        this.dom.addEventListener('click', (evt) => {
+            points = [];
+            const start = this.get_mouse_plane_pos(evt);
+            start.y = 0;
+            points.push(start);
+            this.dom.addEventListener('mousemove', (end_evt) => {
                 const end = this.get_mouse_plane_pos(end_evt);
                 end.y = 0;
-
-                // FIXME 添加结束点
                 if (points.length === 2) points.pop();
                 points.push(end);
                 line.geometry.setFromPoints(points);
-
-                const vec1 = new THREE.Vector3(1, 0, 0);
-                // 直接使用sub方法会改变之前的对象
-                const vec2 = end.clone().sub(start.clone());
-
-                let angle = vec2.angleTo(vec1);
-                const direc = vec2.cross(vec1).y;
-                if (direc > 0) angle = 0 - angle;
-
-                const dis = start.distanceTo(end); // 计算两点之间的距离
-
-                const per_width = 10;// 计算包围盒的width
-                let number = Math.floor(dis / per_width);// 计算阵列的数量
-                if (number <= 0) number = 1;
-
-                // 开始生成阵列
-                for (let i = 0; i < number; i += 1) {
-                    const geometry = new THREE.BoxGeometry(10, 5, 5);
-                    const box = new THREE.Mesh(geometry, material);
-                    box.name = 'move_box';
-                    box.position.x += i * 10;
-                    groups.add(box);
-                }
-
-                // 阵列变换
-                groups.rotation.y = angle;
-                this.scene.add(groups);
-
-                box3.expandByObject(groups);
-                this.scene.children.forEach((item) => {
-                    if (item.name === 'box_wrapper') this.scene.remove(item);
-                });
-                const wrapper = new THREE.Box3Helper(box3, 'red');
-                wrapper.updateMatrixWorld();
-                wrapper.name = 'box_wrapper';
-
-                this.scene.add(wrapper);
             });
         });
     }
