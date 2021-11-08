@@ -134,12 +134,6 @@ class SceneManager {
         };
         window.addEventListener('resize', resizeFun, false);
     }
-
-    // 禁止场景旋转
-    ban_scene_rotate() {
-        console.log('禁止旋转');
-        this.controls.enableRotate = false;
-    }
 }
 
 export default SceneManager;

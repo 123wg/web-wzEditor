@@ -3,7 +3,9 @@
 * @Author: wg
 * @Date: 2021-11-05 15:22:48
 * */
+
 import * as THREE from 'three';
+import Ground from './Ground';
 
 class DrawManager {
     constructor(app, parent) {
@@ -21,20 +23,44 @@ class DrawManager {
 
     // 开始绘制模型
     begin_draw(obj) {
-        this.parent.ban_scene_rotate();
+        this.parent.controls.enableRotate = false;
         this.is_creating = true;
         this.draw_attr = obj;
-        this[obj.mode]();
 
-        // 添加鼠标右击退出绘制事件
+        // 执行绘制方法
+        this[obj.mode](true);
+
+        // 取消绘制
+        let down_right = false;
+        let is_drag = false;
+        this.stop_mousedown_fun = (evt) => {
+            if (evt.button === 2) down_right = true;
+        };
+        this.stop_mousemove_fun = () => {
+            if (down_right) is_drag = true;
+        };
+        this.stop_mouseup_fun = () => {
+            if (down_right && !is_drag) {
+                // 停止绘制
+                this.is_creating = false;
+                this[obj.mode](false);
+                this.parent.controls.enableRotate = true;
+
+                // 禁用事件
+                this.dom.removeEventListener('mousedown', this.stop_mousedown_fun);
+                this.dom.removeEventListener('mousemove', this.stop_mousemove_fun);
+                this.dom.removeEventListener('mouseup', this.stop_mouseup_fun);
+            }
+            // 属性恢复
+            down_right = false;
+            is_drag = false;
+        };
+        this.dom.addEventListener('mousedown', this.stop_mousedown_fun);
+        this.dom.addEventListener('mousemove', this.stop_mousemove_fun);
+        this.dom.addEventListener('mouseup', this.stop_mouseup_fun);
     }
 
-    // 结束绘制
-    end_draw() {
-        // 根据当前绘制的类型 关闭响应的事件
-    }
-
-    // 屏幕坐标转三维坐标
+    // FIXME 屏幕坐标转三维坐标 -- 需要提取出公共类
     get_mouse_plane_pos(evt) {
         const mouse = {};
         const raycaster = new THREE.Raycaster();
@@ -51,104 +77,53 @@ class DrawManager {
         return null;
     }
 
-    // 圈地
-    drag_drop() {
+    /**
+    *@description: 注册圈地事件
+    *@param{Bool} 注册和解除
+    *@return:
+    */
+    drag_drop(evt_type) {
+        if (!evt_type) {
+            this.dom.removeEventListener('click', this.ground_clickFun);
+            this.dom.removeEventListener('mousemove', this.ground_moveFun);
+            return;
+        }
         // 是否正在绘制矩形
-        this.is_draw_rect = false;
-        this.dom.addEventListener('click', (evt) => {
-            if (this.is_draw_rect) return;
-            this.rect_box = [];
+        let is_drawing_ground = false;
+        let ground = null;
 
-            const start = this.get_mouse_plane_pos(evt);
-            this.rect_start = start;
-            for (let i = 0; i < 4; i += 1) {
-                const geometry = new THREE.BoxGeometry(5, 0.1, 5);
-                console.log(geometry.parameters);
-                const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-                const cube = new THREE.Mesh(geometry, material);
-                cube.visible = false;
-                cube.position.x = start.x;
-                cube.position.z = start.z;
-                this.rect_box.push(cube);
-                this.scene.add(cube);
-            }
-            this.is_draw_rect = true;
+        // 鼠标移动事件
+        this.ground_moveFun = (e_evt) => {
+            if (!is_drawing_ground) return;
+            // 先删除之前的
+            ground._auxiliary_line.forEach((item) => this.scene.remove(item));
+            ground._end = this.get_mouse_plane_pos(e_evt);
+            ground._update_aux_line();
+            ground.show_aux_line(true);
+            ground._auxiliary_line.forEach((item) => this.scene.add(item));
+        };
 
-            this.create_floor = () => {
-                if (!this.is_draw_rect) return;
-                this.is_draw_rect = false;
-                for (let i = 0; i < this.rect_box.length; i += 1) {
-                    this.scene.remove(this.rect_box[i]);
-                }
-                this.rect_box = [];
-
-                // 绘制地板
-                const loader = new THREE.TextureLoader();
-                loader.load('/static/img/floor.jpg', (texture) => {
-                    texture.wrapS = THREE.RepeatWrapping;
-                    texture.wrapT = THREE.RepeatWrapping;
-                    texture.repeat.set(10, 10);
-                    const geometry = new THREE.BoxGeometry(this.rect_width, 1, this.rect_height);
-                    const geometryMaterial = new THREE.MeshBasicMaterial({
-                        map: texture,
-                        side: THREE.DoubleSide,
-                    });
-                    const floor = new THREE.Mesh(geometry, geometryMaterial);
-                    floor.position.y = 1;
-                    floor.position.x = this.rect_cenx;
-                    floor.position.z = this.rect_cenz;
-                    // floor.rotation.x = Math.PI / 2;
-                    floor.name = '地面';
-                    this.scene.add(floor);
-                    this.dom.removeEventListener('click', this.create_floor);
+        // 鼠标点击事件
+        this.ground_clickFun = (s_evt) => {
+            if (is_drawing_ground) {
+                // 创建地板
+                ground._create_node().then(() => {
+                    this.scene.add(ground._node);
+                    ground.show_aux_line(false);
+                    ground = null;
+                    is_drawing_ground = false;
+                    this.dom.removeEventListener('mousemove', this.ground_moveFun);
                 });
-            };
-            this.dom.addEventListener('click', this.create_floor);
-        });
-        this.dom.addEventListener('mousemove', (evt) => {
-            if (!this.is_draw_rect) return;
-            const end = this.get_mouse_plane_pos(evt);
-            const startx = this.rect_start.x;
-            const startz = this.rect_start.z;
-            const endx = end.x;
-            const endz = end.z;
-            const cenx = (startx + endx) / 2;
-            const cenz = (startz + endz) / 2;
-            this.rect_cenx = (startx + endx) / 2;
-            this.rect_cenz = (startz + endz) / 2;
-            const pos = [[startx, startz], [endx, startz], [endx, endz], [startx, endz]];
-            const width = endx - startx;
-            const height = endz - startz;
-            this.rect_width = width;
-            this.rect_height = height;
-            for (let i = 0; i < this.rect_box.length; i += 1) {
-                this.rect_box[i].visible = true;
-
-                if (i % 2 !== 0) {
-                    this.rect_box[i].position.z = cenz;
-                    [this.rect_box[i].position.x] = pos[i];
-                    this.rect_box[i].scale.z = height / 5;
-                } else {
-                    this.rect_box[i].position.x = cenx;
-                    [, this.rect_box[i].position.z] = pos[i];
-                    this.rect_box[i].scale.x = width / 5;
-                }
+                return null;
             }
-        });
-    }
+            ground = new Ground();
+            is_drawing_ground = true;
+            ground._start = this.get_mouse_plane_pos(s_evt);
+            ground._create_aux_line();
+            this.dom.addEventListener('mousemove', this.ground_moveFun);
+        };
 
-    // 拖拽绘制围墙
-    draw_fence() {
-
-    }
-
-    // 点击摆放模型
-    click_display() {
-        // const { model_url } = this.draw_attr;
-        // 获取模型地址
-        // 加载模型
-        // 创建鼠标移动事件
-        // 创建鼠标点击事件
+        this.dom.addEventListener('click', this.ground_clickFun);
     }
 }
 
