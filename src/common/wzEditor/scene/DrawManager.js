@@ -7,6 +7,7 @@
 import * as THREE from 'three';
 import Ground from './Ground';
 import Fence from './Fence';
+import Substance from './Substance';
 
 class DrawManager {
     constructor(app, parent) {
@@ -166,6 +167,37 @@ class DrawManager {
         };
         // 加载模型对象
         this.dom.addEventListener('click', this.fence_clickFun);
+    }
+
+    // 点击摆放模型
+    async click_display(evt_type) {
+        if (!evt_type) {
+            this.dom.removeEventListener('click', this.substance_click_fun);
+            return;
+        }
+        const substance = new Substance();
+        substance._model_url = this.draw_attr.model_url;
+        await substance._create_node();
+        this.substance_move_fun = (m_evt) => {
+            const m_pos = this.get_mouse_plane_pos(m_evt);
+            substance._node.position.set(m_pos.x, m_pos.y, m_pos.z);
+            this.scene.add(substance._node);
+        };
+        this.dom.addEventListener('mousemove', this.substance_move_fun);
+        this.substance_click_fun = () => {
+            this.dom.removeEventListener('mousemove', this.substance_move_fun);
+
+            // FIXME 提取出公共方法
+            this.is_creating = false;
+            this.click_display(false);
+            this.parent.controls.enableRotate = true;
+
+            // 禁用事件
+            this.dom.removeEventListener('mousedown', this.stop_mousedown_fun);
+            this.dom.removeEventListener('mousemove', this.stop_mousemove_fun);
+            this.dom.removeEventListener('mouseup', this.stop_mouseup_fun);
+        };
+        this.dom.addEventListener('click', this.substance_click_fun);
     }
 }
 

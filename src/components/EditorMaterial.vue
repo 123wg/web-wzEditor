@@ -61,6 +61,17 @@ export default {
                                 },
                             ],
                         },
+                        {
+                            group: '人物',
+                            children: [
+                                {
+                                    img_url: '/static/img/fence_01.png',
+                                    model_url: '/static/model/matilda/scene.gltf',
+                                    name: '人物',
+                                    mode: 'click_display', // 执行的方法 --枚举类管理 圈地(drag_drop) 点击摆放(click_display) 绘制围墙(draw_fence)
+                                },
+                            ],
+                        },
                     ],
                 },
             ],
