@@ -40,13 +40,24 @@ export default {
                     label: '室外',
                     children: [
                         {
-                            group: '绘制围栏',
+                            group: '圈地',
                             children: [
                                 {
-                                    img_url: '/static/img/matilda.png',
-                                    model_url: '/static/model/matilda/scene.gltf',
-                                    name: '小大姐',
+                                    img_url: '/static/img/ground.png',
+                                    // model_url: '/static/model/matilda/scene.gltf',
+                                    name: '绘制地板',
                                     mode: 'drag_drop', // 执行的方法 --枚举类管理 圈地(drag_drop) 点击摆放(click_display) 绘制围墙(draw_fence)
+                                },
+                            ],
+                        },
+                        {
+                            group: '围墙',
+                            children: [
+                                {
+                                    img_url: '/static/img/fence_01.png',
+                                    model_url: '/static/model/fence/fence.fbx',
+                                    name: '围栏',
+                                    mode: 'draw_fence', // 执行的方法 --枚举类管理 圈地(drag_drop) 点击摆放(click_display) 绘制围墙(draw_fence)
                                 },
                             ],
                         },

@@ -6,6 +6,7 @@
 
 import * as THREE from 'three';
 import Ground from './Ground';
+import Fence from './Fence';
 
 class DrawManager {
     constructor(app, parent) {
@@ -124,6 +125,47 @@ class DrawManager {
         };
 
         this.dom.addEventListener('click', this.ground_clickFun);
+    }
+
+    // 绘制围栏方法
+    draw_fence(evt_type) {
+        if (!evt_type) {
+            this.dom.removeEventListener('click', this.fence_clickFun);
+            this.dom.removeEventListener('mousemove', this.fence_moveFun);
+            // FIXME 测试这种写法
+            delete this.fence_clickFun;
+            delete this.fence_moveFun;
+            console.log(this);
+            return;
+        }
+        // 是否正在绘制围栏
+        let is_drawing_fence = false;
+        let fence = null;
+
+        //  鼠标移动事件
+        this.fence_moveFun = (m_evt) => {
+            if (!is_drawing_fence) return;
+            fence._node.remove(...fence._node.children);
+            fence._end = this.get_mouse_plane_pos(m_evt);
+            fence._create_node();
+            this.scene.add(fence._node);
+        };
+        // 点击事件
+        this.fence_clickFun = async (c_evt) => {
+            if (is_drawing_fence) {
+                // 添加到场景中
+                is_drawing_fence = false;
+                return;
+            }
+            is_drawing_fence = true;
+            fence = new Fence();
+            fence._model_url = this.draw_attr.model_url;
+            await fence._load_model();
+            fence._start = this.get_mouse_plane_pos(c_evt);
+            this.dom.addEventListener('mousemove', this.fence_moveFun);
+        };
+        // 加载模型对象
+        this.dom.addEventListener('click', this.fence_clickFun);
     }
 }
 
