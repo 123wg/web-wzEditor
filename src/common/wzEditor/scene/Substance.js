@@ -26,6 +26,7 @@ class Substance {
                 loader = new GLTFLoader();
                 loader.load(this._model_url, (gltf) => {
                     this._node = gltf.scene;
+                    console.log(this._node);
                     resolve();
                 });
                 break;
