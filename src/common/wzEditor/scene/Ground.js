@@ -15,7 +15,7 @@ class Ground {
         this._aux_height = 0.1;// 辅助线高度
         this._start = new THREE.Vector3();// 起点
         this._end = new THREE.Vector3(); // 终点
-        this._node = null; // 地板节点
+        this._node = new THREE.Group(); // 地板节点
         this._node._type = 'Ground';
     }
 
@@ -77,7 +77,7 @@ class Ground {
                 node.position.x = obj.cen_x;
                 node.position.z = obj.cen_z;
                 node.name = this._type;
-                this._node = node;
+                this._node.add(node);
                 resolve();
             });
         });
