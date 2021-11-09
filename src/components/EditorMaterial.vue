@@ -49,7 +49,7 @@ export default {
                                     mode: 'drag_drop', // 执行的方法 --枚举类管理 圈地(drag_drop) 点击摆放(click_display) 绘制围墙(draw_fence)
                                 },
                                 {
-                                    img_url: '/static/img/ground.png',
+                                    img_url: '/static/img/build_sign.png',
                                     // model_url: '/static/model/matilda/scene.gltf',
                                     name: '建筑',
                                     mode: 'build_sign', // 执行的方法 --枚举类管理 圈地(drag_drop) 点击摆放(click_display) 绘制围墙(draw_fence)
@@ -71,9 +71,20 @@ export default {
                             group: '人物',
                             children: [
                                 {
-                                    img_url: '/static/img/fence_01.png',
+                                    img_url: '/static/img/matilda.png',
                                     model_url: '/static/model/matilda/scene.gltf',
                                     name: '人物',
+                                    mode: 'click_display', // 执行的方法 --枚举类管理 圈地(drag_drop) 点击摆放(click_display) 绘制围墙(draw_fence)
+                                },
+                            ],
+                        },
+                        {
+                            group: '草坪',
+                            children: [
+                                {
+                                    img_url: '/static/img/tree.png',
+                                    model_url: '/static/model/grass2/scene.gltf',
+                                    name: '草坪',
                                     mode: 'click_display', // 执行的方法 --枚举类管理 圈地(drag_drop) 点击摆放(click_display) 绘制围墙(draw_fence)
                                 },
                             ],

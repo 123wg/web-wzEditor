@@ -27,7 +27,7 @@ class SceneManager {
         this.scene = new THREE.Scene();
         this._init_camera();
         this._init_render();
-        this._init_refer_line();
+        // this._init_refer_line();
         this._add_axes();
         this._init_sky(attr.skyUrl);
         this._init_mouse_control();
@@ -35,6 +35,7 @@ class SceneManager {
         this._start_render();
         this._on_resize();
 
+        // 绘制管理器
         this.draw_manager = new DrawManager(this.app, this);
     }
 

@@ -85,11 +85,7 @@ class DrawManager {
         return null;
     }
 
-    /**
-    *@description: 注册圈地事件
-    *@param{Bool} 注册和解除
-    *@return:
-    */
+    // 圈地事件
     drag_drop(evt_type) {
         if (!evt_type) {
             this.dom.removeEventListener('click', this.ground_clickFun);

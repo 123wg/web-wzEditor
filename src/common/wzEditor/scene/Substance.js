@@ -5,11 +5,11 @@
 * */
 // import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader';
 
 class Substance {
     constructor(scene) {
         this.scene = scene;
-        // this._pos = new THREE.Vector3(); // 初始的位置
         this._model_url = '';
         this._node = null;
     }
@@ -17,11 +17,25 @@ class Substance {
     // 创建模型
     _create_node() {
         return new Promise((resolve) => {
-            const loader = new GLTFLoader();
-            loader.load(this._model_url, (gltf) => {
-                this._node = gltf.scene;
-                resolve();
-            });
+            const file_type = this._model_url.substring(this._model_url.lastIndexOf('.') + 1);
+            let loader = null;
+            switch (file_type) {
+            case 'gltf':
+                loader = new GLTFLoader();
+                loader.load(this._model_url, (gltf) => {
+                    this._node = gltf.scene;
+                    resolve();
+                });
+                break;
+            case 'fbx':
+                loader = new FBXLoader();
+                loader.load(this._model_url, (gltf) => {
+                    this._node = gltf;
+                    resolve();
+                });
+                break;
+            default: break;
+            }
         });
     }
 }
