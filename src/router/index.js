@@ -21,6 +21,10 @@ const routes = [
         path: '/',
         component: () => import('@/views/Editor.vue'),
     },
+    {
+        path: '/test',
+        component: () => import('@/views/Test.vue'),
+    },
     // FIXME 暂时注释
     // ...constantRouterComponents,
 ];

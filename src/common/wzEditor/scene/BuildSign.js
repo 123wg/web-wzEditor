@@ -11,6 +11,7 @@ class BuildSign {
     constructor(scene) {
         this.scene = scene;
         this._node = new THREE.Group();
+        this._node._type = 'BuildSign';
     }
 
     // 创建节点

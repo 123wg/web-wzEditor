@@ -6,12 +6,14 @@
 // import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader';
+import * as THREE from 'three';
 
 class Substance {
     constructor(scene) {
         this.scene = scene;
         this._model_url = '';
-        this._node = null;
+        this._node = new THREE.Group();
+        this._node._type = 'Substance';
     }
 
     // 创建模型

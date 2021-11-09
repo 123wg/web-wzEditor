@@ -13,9 +13,9 @@ class Fence {
         this._start = new THREE.Vector3();
         this._end = new THREE.Vector3();
         this._node = new THREE.Group(); // 围栏节点
+        this._node._type = 'Fence';
         this._model_url = '';// 模型地址
-        // 原始模型对象
-        this._model_obj = null;
+        this._model_obj = null;// 原始模型对象
     }
 
     // FIXME 加载模型 -将此部分剥离出去 做成工具类引入 可加载不同类型的模型

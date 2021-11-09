@@ -42,8 +42,8 @@ export default class WzScene {
         // this.add_box();// FIXME  添加立方体 --测试完成后删除
         // this.add_gltf();
         // this.listen_create_model();
-        // this.add_floor(); // 添加地板
-        // this.select_model(); // 开启光线追踪
+        this.add_floor(); // 添加地板
+        this.select_model(); // 开启光线追踪
 
         // 基础功能测试------start-----
         // 测试贴图
@@ -65,7 +65,7 @@ export default class WzScene {
         // FIXME 测试模型复制 为拖拽做准备
         // this.test_clone();
         //  TODO 拖拽绘制围墙
-        this.draw_fence();
+        // this.draw_fence();
         // 测试改变缩放中心点
         // this.change_scale_center();
 
@@ -275,7 +275,8 @@ export default class WzScene {
             floor.position.x = 20;
             floor.position.z = 30;
             floor.rotation.x = Math.PI / 2;
-            floor.name = '地面';
+            // floor.name = '地面';
+            floor._type = 'Campus';
             this.scene.add(floor);
         });
     }
@@ -298,13 +299,12 @@ export default class WzScene {
         outlinePass.hiddenEdgeColor.set('#190a05');// 被遮挡的边界线颜色
         composer.addPass(outlinePass);
         const effectFXAA = new ShaderPass(FXAAShader);
-        // console.log(effectFXAA.uniforms);
         effectFXAA.uniforms.resolution.value.set(1 / width, 1 / height);
         effectFXAA.renderToScreen = true;
         composer.addPass(effectFXAA);
         this.renderer.domElement.addEventListener('click', (event) => {
-            // console.log(this.scene);
             const rect = this.renderer.domElement.getBoundingClientRect();
+            // 转换的过程 将屏幕的坐标 转换为已threejs 中标准的坐标 原点位置变化，范围为[-1,1]
             mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
             mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
             raycaster.setFromCamera(mouse, this.camera);
@@ -318,7 +318,6 @@ export default class WzScene {
             };
             const intersects = raycaster.intersectObjects(this.scene.children, true);
             // 如果选中的是身体的某一部分的话 查找所有祖先是不是有name为girl的
-            console.log(intersects);
             if (intersects.length !== 0) {
                 getParent(intersects[0].object);
                 selectedObjects.push(this.selectMesh);

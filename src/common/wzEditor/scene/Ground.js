@@ -13,12 +13,10 @@ class Ground {
         this._aux_width = 5;// 辅助线长度
         this._aux_depth = 5;// 辅助线宽度
         this._aux_height = 0.1;// 辅助线高度
-        // this._ground_width = 0;// 地板的长度
-        // this._ground_height = 1; // 地板高度
-        // this._ground_depth = 0; // 地板的宽度
         this._start = new THREE.Vector3();// 起点
         this._end = new THREE.Vector3(); // 终点
         this._node = null; // 地板节点
+        this._node._type = 'Ground';
     }
 
     // 创建辅助线

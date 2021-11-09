@@ -139,7 +139,6 @@ class DrawManager {
             // FIXME 测试这种写法
             delete this.fence_clickFun;
             delete this.fence_moveFun;
-            console.log(this);
             return;
         }
 
