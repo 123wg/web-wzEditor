@@ -393,7 +393,7 @@ export default class WzScene {
                     floor.position.y = 1;
                     floor.position.x = this.rect_cenx;
                     floor.position.z = this.rect_cenz;
-                    // floor.rotation.x = Math.PI / 2;
+
                     floor.name = '地面';
                     this.scene.add(floor);
                     this.dom.removeEventListener('click', this.create_floor);

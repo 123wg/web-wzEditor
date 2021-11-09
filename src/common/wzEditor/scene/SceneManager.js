@@ -27,7 +27,7 @@ class SceneManager {
         this.scene = new THREE.Scene();
         this._init_camera();
         this._init_render();
-        // this._init_refer_line();
+        this._init_refer_line();
         this._add_axes();
         this._init_sky(attr.skyUrl);
         this._init_mouse_control();
@@ -57,7 +57,8 @@ class SceneManager {
     // 初始化渲染器
     _init_render() {
         this.renderer = new THREE.WebGLRenderer({
-            antialias: true,
+            antialias: true, // 抗锯齿
+            // logarithmicDepthBuffer: true, // 使用对数深度缓存
         });
         this.renderer.setSize(this.render_size.width, this.render_size.height);
         this.renderer.setClearColor(new THREE.Color(0, 0, 0), 1);

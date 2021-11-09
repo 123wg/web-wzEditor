@@ -69,13 +69,13 @@ class Ground {
                 texture.wrapS = THREE.RepeatWrapping;
                 texture.wrapT = THREE.RepeatWrapping;
                 texture.repeat.set(10, 10);
-                const geometry = new THREE.BoxGeometry(obj.width, 1, obj.height);
+                const geometry = new THREE.BoxGeometry(obj.width, 0.1, obj.height);
                 const geometryMaterial = new THREE.MeshBasicMaterial({
                     map: texture,
                     side: THREE.DoubleSide,
                 });
                 const node = new THREE.Mesh(geometry, geometryMaterial);
-                node.position.y = 0.1;
+                node.position.y = 1;
                 node.position.x = obj.cen_x;
                 node.position.z = obj.cen_z;
                 node.name = this._type;

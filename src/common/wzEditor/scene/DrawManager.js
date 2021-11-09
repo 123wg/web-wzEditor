@@ -8,6 +8,7 @@ import * as THREE from 'three';
 import Ground from './Ground';
 import Fence from './Fence';
 import Substance from './Substance';
+import BuildSign from './BuildSign';
 
 class DrawManager {
     constructor(app, parent) {
@@ -28,11 +29,11 @@ class DrawManager {
         this.parent.controls.enableRotate = false;
         this.is_creating = true;
         this.draw_attr = obj;
+        this[obj.mode](true);// 执行绘制方法
+    }
 
-        // 执行绘制方法
-        this[obj.mode](true);
-
-        // 取消绘制
+    // 右键停止事件 地板和围墙使用
+    _right_stop_draw_event() {
         let down_right = false;
         let is_drag = false;
         this.stop_mousedown_fun = (evt) => {
@@ -43,15 +44,7 @@ class DrawManager {
         };
         this.stop_mouseup_fun = () => {
             if (down_right && !is_drag) {
-                // 停止绘制
-                this.is_creating = false;
-                this[obj.mode](false);
-                this.parent.controls.enableRotate = true;
-
-                // 禁用事件
-                this.dom.removeEventListener('mousedown', this.stop_mousedown_fun);
-                this.dom.removeEventListener('mousemove', this.stop_mousemove_fun);
-                this.dom.removeEventListener('mouseup', this.stop_mouseup_fun);
+                this._stop_draw();
             }
             // 属性恢复
             down_right = false;
@@ -60,6 +53,19 @@ class DrawManager {
         this.dom.addEventListener('mousedown', this.stop_mousedown_fun);
         this.dom.addEventListener('mousemove', this.stop_mousemove_fun);
         this.dom.addEventListener('mouseup', this.stop_mouseup_fun);
+    }
+
+    // 停止绘制
+    _stop_draw() {
+        // 停止绘制
+        this.is_creating = false;
+        this.parent.controls.enableRotate = true;
+        this[this.draw_attr.mode](false);
+
+        // 禁用事件
+        this.dom.removeEventListener('mousedown', this.stop_mousedown_fun);
+        this.dom.removeEventListener('mousemove', this.stop_mousemove_fun);
+        this.dom.removeEventListener('mouseup', this.stop_mouseup_fun);
     }
 
     // FIXME 屏幕坐标转三维坐标 -- 需要提取出公共类
@@ -90,6 +96,7 @@ class DrawManager {
             this.dom.removeEventListener('mousemove', this.ground_moveFun);
             return;
         }
+        this._right_stop_draw_event();
         // 是否正在绘制矩形
         let is_drawing_ground = false;
         let ground = null;
@@ -139,6 +146,8 @@ class DrawManager {
             console.log(this);
             return;
         }
+
+        this._right_stop_draw_event();
         // 是否正在绘制围栏
         let is_drawing_fence = false;
         let fence = null;
@@ -183,21 +192,34 @@ class DrawManager {
             substance._node.position.set(m_pos.x, m_pos.y, m_pos.z);
             this.scene.add(substance._node);
         };
-        this.dom.addEventListener('mousemove', this.substance_move_fun);
         this.substance_click_fun = () => {
             this.dom.removeEventListener('mousemove', this.substance_move_fun);
-
-            // FIXME 提取出公共方法
-            this.is_creating = false;
-            this.click_display(false);
-            this.parent.controls.enableRotate = true;
-
-            // 禁用事件
-            this.dom.removeEventListener('mousedown', this.stop_mousedown_fun);
-            this.dom.removeEventListener('mousemove', this.stop_mousemove_fun);
-            this.dom.removeEventListener('mouseup', this.stop_mouseup_fun);
+            this._stop_draw();
         };
+        this.dom.addEventListener('mousemove', this.substance_move_fun);
         this.dom.addEventListener('click', this.substance_click_fun);
+    }
+
+    // 点击绘制建筑
+    build_sign(evt_type) {
+        if (!evt_type) {
+            this.dom.removeEventListener('click', this.build_sign_click);
+            return;
+        }
+        const build_sign = new BuildSign();
+        build_sign._create_node();
+        this.build_sign_click = () => {
+            this.dom.removeEventListener('mousemove', this.build_sign_move);
+            this._stop_draw();
+        };
+        this.build_sign_move = (m_evt) => {
+            const pos = this.get_mouse_plane_pos(m_evt);
+            build_sign._node.position.set(pos.x, pos.y, pos.z);
+            this.scene.add(build_sign._node);
+        };
+        // 创建物体
+        this.dom.addEventListener('mousemove', this.build_sign_move);
+        this.dom.addEventListener('click', this.build_sign_click);
     }
 }
 
