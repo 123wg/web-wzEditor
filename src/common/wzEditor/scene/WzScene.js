@@ -42,8 +42,8 @@ export default class WzScene {
         // this.add_box();// FIXME  添加立方体 --测试完成后删除
         // this.add_gltf();
         // this.listen_create_model();
-        this.add_floor(); // 添加地板
-        this.select_model(); // 开启光线追踪
+        // this.add_floor(); // 添加地板
+        // this.select_model(); // 开启物体选中效果
 
         // 基础功能测试------start-----
         // 测试贴图
@@ -54,6 +54,9 @@ export default class WzScene {
         // this.test_pipe();
         // 测试group的使用
         // this.test_group();
+
+        // 测试自定义顶点
+        this.test_custom_point();
 
         // 基础功能测试------end-----
 
@@ -832,5 +835,23 @@ export default class WzScene {
                 line.geometry.setFromPoints(points);
             });
         });
+    }
+
+    // 测试自定义顶点
+    test_custom_point() {
+        // 合并mesh
+        const box_geometry = new THREE.BoxGeometry(50, 10, 10);
+        const box_material = new THREE.MeshLambertMaterial({
+            color: 'red',
+        });
+        const box_mesh = new THREE.Mesh(box_geometry, box_material);
+        box_mesh.position.x = 40;
+
+        const ball_geometry = new THREE.SphereGeometry(10, 8, 12);
+        const ball_material = new THREE.MeshPhongMaterial({ color: 'green' });
+        const ball_mesh = new THREE.Mesh(ball_geometry, ball_material);
+
+        this.scene.add(box_mesh);
+        this.scene.add(ball_mesh);
     }
 }
