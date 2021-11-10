@@ -869,32 +869,43 @@ export default class WzScene {
     // 测试根据线条生成面
     test_canvas_mesh() {
         const shape = new THREE.Shape(); // 理解
-        shape.moveTo(0, 0);
-        shape.lineTo(200, 0);
-        shape.lineTo(200, 20);
-        shape.lineTo(0, 20);
+        shape.moveTo(0, 10);
         shape.lineTo(0, 0);
+        shape.lineTo(10, 0);
+        shape.lineTo(10, 10);
 
         const geometry = new THREE.ExtrudeGeometry(shape, {
-            amount: 1,
+            depth: 10,
             bevelEnabled: false, // 是否有倒角
         });
 
         const loader = new THREE.TextureLoader();
-        loader.load('/static/img/333.jpg', (texture) => {
-            texture.wrapS = THREE.RepeatWrapping;
-            // texture.repeat.x = 1;
-            const material_1 = new THREE.MeshLambertMaterial({
-                color: 'red',
-            });
-            const material_2 = new THREE.MeshBasicMaterial({
-                map: texture,
-                side: THREE.DoubleSide,
-            });
-            const mesh = new THREE.Mesh(geometry, [material_2, material_1]);
-            const faceNormals = new VertexNormalsHelper(mesh, 2, 0x00ff00, 1);
-            this.scene.add(faceNormals);
-            this.scene.add(mesh);
+
+        const material_1 = new THREE.MeshLambertMaterial({
+            color: 'green',
         });
+
+        const texture = loader.load('/static/img/tree.png');
+        texture.repeat.x = 1;
+        texture.repeat.y = 1;
+        const material_2 = new THREE.MeshLambertMaterial({
+            map: texture,
+            side: THREE.DoubleSide,
+        });
+
+        const mesh = new THREE.Mesh(geometry, [material_2, material_1]);
+        const faceNormals = new VertexNormalsHelper(mesh, 2, 0x00ff00, 1);
+        this.scene.add(faceNormals);
+        this.scene.add(mesh);
+
+        // 创建矩形
+        // const box_geometry = new THREE.BoxGeometry(100, 10, 10);
+        // const box_loader = new THREE.TextureLoader();
+        // const box_material = new THREE.MeshLambertMaterial({
+        //     map: box_loader.load('/static/img/333.jpg'),
+        // });
+        // const box_mesh = new THREE.Mesh(box_geometry, box_material);
+        // this.scene.add(box_mesh);
+        // box_mesh.translateX(-100);
     }
 }
