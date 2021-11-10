@@ -16,6 +16,8 @@ import { FXAAShader } from 'three/examples/jsm/shaders/FXAAShader';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry';
 import { FontLoader } from 'three/examples/jsm/loaders/FontLoader';
 import { CSG } from 'three-csg-ts'; // 交集并集计算
+import { VertexNormalsHelper } from 'three/examples/jsm/helpers/VertexNormalsHelper';
+
 import bus from '@/common/EventBus';
 
 export default class WzScene {
@@ -42,8 +44,8 @@ export default class WzScene {
         // this.add_box();// FIXME  添加立方体 --测试完成后删除
         // this.add_gltf();
         // this.listen_create_model();
-        this.add_floor(); // 添加地板
-        this.select_model(); // 开启光线追踪
+        // this.add_floor(); // 添加地板
+        // this.select_model(); // 开启物体选中效果
 
         // 基础功能测试------start-----
         // 测试贴图
@@ -54,6 +56,11 @@ export default class WzScene {
         // this.test_pipe();
         // 测试group的使用
         // this.test_group();
+
+        // 测试自定义顶点
+        // this.test_custom_point();
+        // 根据线生成面
+        this.test_canvas_mesh();
 
         // 基础功能测试------end-----
 
@@ -831,6 +838,63 @@ export default class WzScene {
                 points.push(end);
                 line.geometry.setFromPoints(points);
             });
+        });
+    }
+
+    // 测试自定义顶点
+    test_custom_point() {
+        // 合并mesh
+        const box_geometry = new THREE.BoxGeometry(50, 10, 10);
+        // const box_material = new THREE.MeshLambertMaterial({
+        //     color: 'red',
+        // });
+        // const box_mesh = new THREE.Mesh(box_geometry, box_material);
+        // box_mesh.position.x = 40;
+
+        const ball_geometry = new THREE.SphereGeometry(10, 8, 12);
+        // const ball_material = new THREE.MeshPhongMaterial({ color: 'green' });
+        // const ball_mesh = new THREE.Mesh(ball_geometry, ball_material);
+
+        // this.scene.add(box_mesh);
+        // this.scene.add(ball_mesh);
+
+        const all_geometry = ball_geometry.merge(box_geometry);
+        const material = new THREE.MeshBasicMaterial({ color: 'green' });
+
+        const mesh = new THREE.Mesh(all_geometry, material);
+
+        this.scene.add(mesh);
+    }
+
+    // 测试根据线条生成面
+    test_canvas_mesh() {
+        const shape = new THREE.Shape(); // 理解
+        shape.moveTo(0, 0);
+        shape.lineTo(200, 0);
+        shape.lineTo(200, 20);
+        shape.lineTo(0, 20);
+        shape.lineTo(0, 0);
+
+        const geometry = new THREE.ExtrudeGeometry(shape, {
+            amount: 1,
+            bevelEnabled: false, // 是否有倒角
+        });
+
+        const loader = new THREE.TextureLoader();
+        loader.load('/static/img/333.jpg', (texture) => {
+            texture.wrapS = THREE.RepeatWrapping;
+            // texture.repeat.x = 1;
+            const material_1 = new THREE.MeshLambertMaterial({
+                color: 'red',
+            });
+            const material_2 = new THREE.MeshBasicMaterial({
+                map: texture,
+                side: THREE.DoubleSide,
+            });
+            const mesh = new THREE.Mesh(geometry, [material_2, material_1]);
+            const faceNormals = new VertexNormalsHelper(mesh, 2, 0x00ff00, 1);
+            this.scene.add(faceNormals);
+            this.scene.add(mesh);
         });
     }
 }

@@ -1,0 +1,383 @@
+{
+	"asset": {
+		"generator": "Unity 2019.2.17f1",
+		"extras": {
+			"exporterVersion" : "2.1.1"
+		},
+		"version": "2.0"
+	},
+	"accessors": [
+		{
+			"bufferView": 2,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 126,
+			"max": [ 17.23592, 3, 21.80506 ],
+			"min": [ -12.89103, 0, -28.43688 ],
+			"type": "VEC3"
+		},
+		{
+			"bufferView": 2,
+			"byteOffset": 1512,
+			"componentType": 5126,
+			"count": 126,
+			"max": [ 0.9921286, 1, 0.9921286 ],
+			"min": [ -0.9921286, 0, -0.9921286 ],
+			"type": "VEC3"
+		},
+		{
+			"bufferView": 1,
+			"byteOffset": 0,
+			"componentType": 5126,
+			"count": 126,
+			"max": [ 1, 1 ],
+			"min": [ 0, 0 ],
+			"type": "VEC2"
+		},
+		{
+			"bufferView": 1,
+			"byteOffset": 1008,
+			"componentType": 5126,
+			"count": 126,
+			"max": [ 1, 1 ],
+			"min": [ 0, 0 ],
+			"type": "VEC2"
+		},
+		{
+			"bufferView": 0,
+			"byteOffset": 0,
+			"componentType": 5123,
+			"count": 36,
+			"max": [ 95 ],
+			"min": [ 0 ],
+			"type": "SCALAR"
+		},
+		{
+			"bufferView": 0,
+			"byteOffset": 72,
+			"componentType": 5123,
+			"count": 90,
+			"max": [ 125 ],
+			"min": [ 12 ],
+			"type": "SCALAR"
+		},
+		{
+			"bufferView": 2,
+			"byteOffset": 3024,
+			"componentType": 5126,
+			"count": 6,
+			"max": [ 17.04, 0.02, 21.65 ],
+			"min": [ -12.73, 0.01, -28.02 ],
+			"type": "VEC3"
+		},
+		{
+			"bufferView": 2,
+			"byteOffset": 3096,
+			"componentType": 5126,
+			"count": 6,
+			"max": [ 0, 0.9999999, 0 ],
+			"min": [ 0, -0.9999999, 0 ],
+			"type": "VEC3"
+		},
+		{
+			"bufferView": 1,
+			"byteOffset": 2016,
+			"componentType": 5126,
+			"count": 6,
+			"max": [ 28.46111, 53.1 ],
+			"min": [ -21.15556, -29.68333 ],
+			"type": "VEC2"
+		},
+		{
+			"bufferView": 0,
+			"byteOffset": 252,
+			"componentType": 5123,
+			"count": 6,
+			"max": [ 5 ],
+			"min": [ 0 ],
+			"type": "SCALAR"
+		}
+	],
+	"buffers": [
+		{
+			"byteLength": 5496,
+			"uri": "Unity2GLTF.bin"
+		}
+	],
+	"bufferViews": [
+		{
+			"buffer": 0,
+			"byteLength": 264,
+			"byteOffset": 5232,
+			"target": 34963
+		},
+		{
+			"buffer": 0,
+			"byteLength": 2064,
+			"byteOffset": 0,
+			"byteStride": 8,
+			"target": 34962
+		},
+		{
+			"buffer": 0,
+			"byteLength": 3168,
+			"byteOffset": 2064,
+			"byteStride": 12,
+			"target": 34962
+		}
+	],
+	"images": [
+		{
+			"uri": "Assets/RoomWall.png"
+		},
+		{
+			"uri": "Assets/WallEdge.png"
+		},
+		{
+			"uri": "Assets/OutsideFloor.png"
+		}
+	],
+	"materials": [
+		{
+			"pbrMetallicRoughness": {
+				"baseColorTexture" : {
+					"index" : 0,
+					"texCoord" : 0
+				},
+				"baseColorFactor": [0.6, 0.6, 0.6, 1],
+				"metallicFactor": 0,
+				"roughnessFactor": 0.6
+			},
+			"emissiveFactor": [0, 0, 0],
+			"doubleSided": false,
+			"name": "Standard"
+		},
+		{
+			"pbrMetallicRoughness": {
+				"baseColorTexture" : {
+					"index" : 1,
+					"texCoord" : 0
+				},
+				"baseColorFactor": [0.6, 0.6, 0.6, 1],
+				"metallicFactor": 0,
+				"roughnessFactor": 0.6
+			},
+			"emissiveFactor": [0, 0, 0],
+			"doubleSided": false,
+			"name": "Standard"
+		},
+		{
+			"pbrMetallicRoughness": {
+				"baseColorTexture" : {
+					"index" : 2,
+					"texCoord" : 0
+				},
+				"baseColorFactor": [1, 1, 1, 1],
+				"metallicFactor": 0,
+				"roughnessFactor": 0.6
+			},
+			"emissiveFactor": [0, 0, 0],
+			"doubleSided": false,
+			"name": "FloorMat (Instance) (Instance)"
+		}
+	],
+	"meshes": [
+		{
+			"name": "mesh__-51240CombineStraightWall",
+			"primitives": [
+				{
+					"attributes": {
+						"POSITION": 0,
+						"NORMAL": 1,
+						"TEXCOORD_0": 2,
+						"TEXCOORD_1": 3
+					},
+					"indices": 4,
+					"material": 0,
+					"mode": 4
+				},
+				{
+					"attributes": {
+						"POSITION": 0,
+						"NORMAL": 1,
+						"TEXCOORD_0": 2,
+						"TEXCOORD_1": 3
+					},
+					"indices": 5,
+					"material": 1,
+					"mode": 4
+				}
+			]
+		},
+		{
+			"name": "mesh__-51252CombineFloor",
+			"primitives": [
+				{
+					"attributes": {
+						"POSITION": 6,
+						"NORMAL": 7,
+						"TEXCOORD_0": 8
+					},
+					"indices": 9,
+					"material": 2,
+					"mode": 4
+				}
+			]
+		}
+	],
+	"nodes": [
+		{
+			"name": "UnityGlTF_correctionMatrix",
+			"children": [
+				1
+			],
+			"matrix": [-1, 0, -8.742278E-08, 0, 0, 1, 0, 0, 8.742278E-08, 0, -1, 0, 0, 0, 0, 1]
+		},
+		{
+			"name": "node_World_-9320",
+			"children": [
+				2,
+				3
+			],
+			"matrix": [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1]
+		},
+		{
+			"name": "node_Buildings_-9326"
+		},
+		{
+			"name": "node_FloorPlan_-9460",
+			"children": [
+				4,
+				5,
+				6,
+				7,
+				8,
+				9,
+				10,
+				11,
+				12,
+				13,
+				14,
+				15,
+				17,
+				19,
+				20,
+				21,
+				22,
+				23,
+				24,
+				25,
+				26
+			]
+		},
+		{
+			"name": "node_Placements_-9466"
+		},
+		{
+			"name": "node_Routes_-9482"
+		},
+		{
+			"name": "node_Text3Ds_-9486"
+		},
+		{
+			"name": "node_WayPoints_-9490"
+		},
+		{
+			"name": "node_HeatmapObjs_-9494"
+		},
+		{
+			"name": "node_PosPoints_-9498"
+		},
+		{
+			"name": "node_PipeLines_-9502"
+		},
+		{
+			"name": "node_LeakWaterLines_-9506"
+		},
+		{
+			"name": "node_lines_-9510"
+		},
+		{
+			"name": "node_curveLines_-9514"
+		},
+		{
+			"name": "node_arrowLines_-9518"
+		},
+		{
+			"name": "node_CombineWall_-9522",
+			"children": [
+				16
+			]
+		},
+		{
+			"name": "node_CombineStraightWall_-51234",
+			"mesh": 0
+		},
+		{
+			"name": "node_CombineFloor_-9526",
+			"children": [
+				18
+			]
+		},
+		{
+			"name": "node_CombineFloor_-51246",
+			"mesh": 1
+		},
+		{
+			"name": "node_CombineCeiling_-9530"
+		},
+		{
+			"name": "node_CombineDoorOrWin_-9538"
+		},
+		{
+			"name": "node_CombinePlacement_-9542"
+		},
+		{
+			"name": "node_DoorOrWins_-9546"
+		},
+		{
+			"name": "node_ArrowDataLines_-9550"
+		},
+		{
+			"name": "node_Polygon_-9554"
+		},
+		{
+			"name": "node_CubePolygon_-9558"
+		},
+		{
+			"name": "node_ColliderCube_-9562",
+			"scale": [ 0, 0, 0]
+		}
+	],
+	"samplers": [
+		{
+			"magFilter": 9729,
+			"minFilter": 9985,
+			"wrapS": 10497,
+			"wrapT": 10497
+		}
+	],
+	"scenes": [
+		{
+			"name":"defaultScene",
+			"nodes": [
+				0
+			]
+		}
+	],
+	"scene": 0,
+	"textures": [
+		{
+			"sampler": 0,
+			"source": 0
+		},
+		{
+			"sampler": 0,
+			"source": 1
+		},
+		{
+			"sampler": 0,
+			"source": 2
+		}
+	]
+}

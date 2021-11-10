@@ -1,1 +1,5 @@
+<<<<<<< HEAD
 {"camInfo":{"eye":"-40.465 19.826 -71.322","target":"-34.214 0.225 -51.845"},"id":"0","gltfid":"node_World_-9320","outdoors":{"id":"1","gltfid":"node_FloorPlan_-9460","structure":{"walls":[{"id":"-87592","gltfid":"node_CombineStraightWall_-87592"},{"id":"-87604","gltfid":"node_CombinePrefabWall_-87604"},{"id":"-87616","gltfid":"node_CombinePrefabWall_-87616"}]}}}
+=======
+{"camInfo":{"eye":"-16.465 28.863 -21.220","target":"0.626 0.041 -7.505"},"id":"0","gltfid":"node_World_-9320","outdoors":{"id":"1","gltfid":"node_FloorPlan_-9460","structure":{"walls":[{"id":"-51234","gltfid":"node_CombineStraightWall_-51234"}],"floors":[{"id":"-51246","gltfid":"node_CombineFloor_-51246"}]}}}
+>>>>>>> 87da25d517831a19938348cef1050573e0829be4
