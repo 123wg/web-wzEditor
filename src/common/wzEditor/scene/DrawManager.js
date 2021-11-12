@@ -233,7 +233,7 @@ class DrawManager {
         this.wall_click_fun = (c_evt) => {
             if (!is_draw_wall) {
                 is_draw_wall = true;
-                wall = new Wall();
+                wall = new Wall(this.scene);
                 const start = this.get_mouse_plane_pos(c_evt);
                 wall.start = start;
                 this.dom.addEventListener('mousemove', this.wall_move_fun);

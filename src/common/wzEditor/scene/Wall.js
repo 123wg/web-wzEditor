@@ -5,6 +5,8 @@
 * */
 import * as THREE from 'three';
 
+import { VertexNormalsHelper } from 'three/examples/jsm/helpers/VertexNormalsHelper';
+
 class Wall {
     constructor(scene) {
         this.scene = scene;
@@ -34,9 +36,8 @@ class Wall {
         // if (direc > 0) angle = 0 - angle;
 
         this._node.position.set(this.start.x, this.start.y, this.start.z);
-
         this._node.add(left_face, right_face, wall_edge);
-
+        this._node.position.y = 1;
         // this._node.position.set(this.start.x, 0, this.start.y);
         // this._node.rotation.y = angle;
     }
@@ -192,7 +193,9 @@ class Wall {
         const wall_material = new THREE.MeshPhongMaterial({
             map: texture,
         });
+
         const wall_mesh = new THREE.Mesh(wall_geometry, wall_material);
+
         return wall_mesh;
     }
 }

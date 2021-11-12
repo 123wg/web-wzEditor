@@ -25,7 +25,7 @@ export default class WzEditor {
     init() {
         this.scene_manager._init({
             container: 'editor-main',
-            skyUrl: '/static/img/skybox/Night/',
+            skyUrl: '/static/img/skybox/Universal/',
         });
     }
 
