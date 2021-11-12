@@ -46,7 +46,12 @@ export default {
                                     img_url: '/static/img/ground.png',
                                     // model_url: '/static/model/matilda/scene.gltf',
                                     name: '绘制地板',
-                                    mode: 'drag_drop', // 执行的方法 --枚举类管理 圈地(drag_drop) 点击摆放(click_display) 绘制围墙(draw_fence)
+                                    mode: 'drag_drop', // 执行的方法 --枚举类管理 圈地(drag_drop) 点击摆放(click_display) 绘制围墙(draw_fence) 绘制墙体(draw_wall)
+                                },
+                                {
+                                    img_url: '/static/img/RoomWall.png',
+                                    name: '绘制墙体',
+                                    mode: 'drag_wall', // 执行的方法 --枚举类管理 圈地(drag_drop) 点击摆放(click_display) 绘制围墙(draw_fence) 绘制墙体(draw_wall)
                                 },
                                 {
                                     img_url: '/static/img/build_sign.png',

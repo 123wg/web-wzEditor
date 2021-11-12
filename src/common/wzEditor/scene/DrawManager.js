@@ -9,6 +9,7 @@ import Ground from './Ground';
 import Fence from './Fence';
 import Substance from './Substance';
 import BuildSign from './BuildSign';
+import Wall from './Wall';
 
 class DrawManager {
     constructor(app, parent) {
@@ -44,6 +45,7 @@ class DrawManager {
         };
         this.stop_mouseup_fun = () => {
             if (down_right && !is_drag) {
+                console.log('停止绘制');
                 this._stop_draw();
             }
             // 属性恢复
@@ -215,6 +217,41 @@ class DrawManager {
         // 创建物体
         this.dom.addEventListener('mousemove', this.build_sign_move);
         this.dom.addEventListener('click', this.build_sign_click);
+    }
+
+    // 绘制围墙
+    drag_wall(evt_type) {
+        if (!evt_type) {
+            this.dom.removeEventListener('click', this.wall_click_fun);
+            this.dom.removeEventListener('mousemove', this.wall_move_fun);
+            return;
+        }
+        this._right_stop_draw_event();
+        // 是否正在绘制围墙
+        let is_draw_wall = false;
+        let wall = null;
+        this.wall_click_fun = (c_evt) => {
+            if (!is_draw_wall) {
+                is_draw_wall = true;
+                wall = new Wall();
+                const start = this.get_mouse_plane_pos(c_evt);
+                wall.start = start;
+                this.dom.addEventListener('mousemove', this.wall_move_fun);
+            } else {
+                is_draw_wall = false;
+                this.dom.removeEventListener('mousemove', this.wall_move_fun);
+            }
+        };
+
+        this.wall_move_fun = (m_evt) => {
+            wall._node.remove(...wall._node.children);
+            const end = this.get_mouse_plane_pos(m_evt);
+            wall.end = end;
+            wall._create_node();
+            this.scene.add(wall._node);
+        };
+
+        this.dom.addEventListener('click', this.wall_click_fun);
     }
 }
 
