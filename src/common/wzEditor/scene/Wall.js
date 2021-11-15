@@ -5,7 +5,7 @@
 * */
 import * as THREE from 'three';
 
-import { VertexNormalsHelper } from 'three/examples/jsm/helpers/VertexNormalsHelper';
+// import { VertexNormalsHelper } from 'three/examples/jsm/helpers/VertexNormalsHelper';
 
 class Wall {
     constructor(scene) {
