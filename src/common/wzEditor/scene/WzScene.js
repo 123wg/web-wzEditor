@@ -62,7 +62,9 @@ export default class WzScene {
         // 根据线生成面
         // this.test_extrude_geometry();
         // 自定义buffer
-        this.custom_wall();
+        // this.custom_wall();
+        // 测试椎体法向量生成
+        this.test_cone();
 
         // 基础功能测试------end-----
 
@@ -935,14 +937,19 @@ export default class WzScene {
 
         const wall_1 = wall.clone();
         const wall_2 = wall.clone();
-        wall_2.translateX(50);
+        // wall_2.translateX(50);
         const group = new THREE.Group();
         group.add(wall_1, wall_2);
         this.scene.add(group);
-        group.rotateY(45);
+
+        setInterval(() => {
+            group.rotateY(1);
+            console.log(wall_1);
+        }, 10);
+        // group.rotateY(45);
 
         // FIXME 测试合并顶点数据
-        console.log('准备顶点数据合并');
+        // console.log('准备顶点数据合并');
     }
 
     // 创建墙体算法
@@ -963,15 +970,15 @@ export default class WzScene {
         const arr = side === 'right' ? [0, 1, 2, 0, 2, 3] : [1, 0, 3, 1, 3, 2];
         const wall_index = new Uint16Array(arr);
 
-        const normal_direc = side === 'righgt' ? 1 : -1;
-        console.log(normal_direc);
+        // const normal_direc = side === 'righgt' ? 1 : -1;
+
         // 法线
-        const wall_normal = new Float32Array([
-            0, 0, normal_direc,
-            0, 0, normal_direc,
-            0, 0, normal_direc,
-            0, 0, normal_direc,
-        ]);
+        // const wall_normal = new Float32Array([
+        //     0, 0, normal_direc,
+        //     0, 0, normal_direc,
+        //     0, 0, normal_direc,
+        //     0, 0, normal_direc,
+        // ]);
 
         // uv坐标
         const wall_uv = new Float32Array([
@@ -983,8 +990,10 @@ export default class WzScene {
 
         wall_geometry.attributes.position = new THREE.BufferAttribute(wall_vertices, 3);
         wall_geometry.index = new THREE.BufferAttribute(wall_index, 1);
-        wall_geometry.attributes.normal = new THREE.BufferAttribute(wall_normal, 3);
+        // FIXME 这里不用自己算法向量
+        // wall_geometry.attributes.normal = new THREE.BufferAttribute(wall_normal, 3);
         wall_geometry.attributes.uv = new THREE.BufferAttribute(wall_uv, 2);
+        wall_geometry.computeVertexNormals();
 
         const loader = new THREE.TextureLoader();
         const texture = loader.load('/static/img/RoomWall.png');
@@ -992,6 +1001,7 @@ export default class WzScene {
             map: texture,
         });
         const wall_mesh = new THREE.Mesh(wall_geometry, wall_material);
+
         return wall_mesh;
     }
 
@@ -1040,28 +1050,28 @@ export default class WzScene {
             4, 13, 5,
         ]);
         // 法向数据
-        const normal = new Float32Array([
-            -1, 0, 0,
-            -1, 0, 0,
-            -1, 0, 0,
-            -1, 0, 0, // 向左
+        // const normal = new Float32Array([
+        //     -1, 0, 0,
+        //     -1, 0, 0,
+        //     -1, 0, 0,
+        //     -1, 0, 0, // 向左
 
-            0, -1, 0,
-            0, -1, 0, // 向下
-            0, 1, 0, // 向上
-            0, 1, 0,
+        //     0, -1, 0,
+        //     0, -1, 0, // 向下
+        //     0, 1, 0, // 向上
+        //     0, 1, 0,
 
-            1, 0, 0, // 向右
-            1, 0, 0,
-            1, 0, 0,
-            1, 0, 0,
+        //     1, 0, 0, // 向右
+        //     1, 0, 0,
+        //     1, 0, 0,
+        //     1, 0, 0,
 
-            0, -1, 0, // 向下
-            0, -1, 0,
-            0, 1, 0, // 向上
-            0, 1, 0,
+        //     0, -1, 0, // 向下
+        //     0, -1, 0,
+        //     0, 1, 0, // 向上
+        //     0, 1, 0,
 
-        ]);
+        // ]);
         // uv贴图
         const uv = new Float32Array([
             0, 0,
@@ -1087,8 +1097,9 @@ export default class WzScene {
 
         edge_geometry.attributes.position = new THREE.BufferAttribute(position, 3);
         edge_geometry.index = new THREE.BufferAttribute(index, 1);
-        edge_geometry.attributes.normal = new THREE.BufferAttribute(normal, 3);
+        // edge_geometry.attributes.normal = new THREE.BufferAttribute(normal, 3);
         edge_geometry.attributes.uv = new THREE.BufferAttribute(uv, 2);
+        edge_geometry.computeVertexNormals();
 
         const loader = new THREE.TextureLoader();
         const map_texture = loader.load('/static/img/wall_side.png');
@@ -1100,5 +1111,19 @@ export default class WzScene {
         const helper = new VertexNormalsHelper(edge_mesh, 2, 'red', 1);
         this.scene.add(helper);
         return edge_mesh;
+    }
+
+    // 测试椎体法向量
+    test_cone() {
+        const geometry = new THREE.ConeGeometry(5, 20, 32);
+        console.log(geometry);
+        const material = new THREE.MeshBasicMaterial({ color: 0xffff00 });
+        const cone = new THREE.Mesh(geometry, material);
+        this.scene.add(cone);
+
+        // const v1 = new THREE.Vector3();
+        // console.log(new THREE.Vector3(0, -1, 0).normalize());
+        // v1.applyAxisAngle(new THREE.Vector3(2, 0, 2).normalize(), Math.PI / 4);
+        // console.log(v1);
     }
 }
