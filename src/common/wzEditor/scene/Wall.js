@@ -87,28 +87,28 @@ class Wall {
             4, 13, 5,
         ]);
         // 法向数据
-        // const normal = new Float32Array([
-        //     -1, 0, 0,
-        //     -1, 0, 0,
-        //     -1, 0, 0,
-        //     -1, 0, 0, // 向左
+        const normal = new Float32Array([
+            -1, 0, 0,
+            -1, 0, 0,
+            -1, 0, 0,
+            -1, 0, 0, // 向左
 
-        //     0, -1, 0,
-        //     0, -1, 0, // 向下
-        //     0, 1, 0, // 向上
-        //     0, 1, 0,
+            0, -1, 0,
+            0, -1, 0, // 向下
+            0, 1, 0, // 向上
+            0, 1, 0,
 
-        //     1, 0, 0, // 向右
-        //     1, 0, 0,
-        //     1, 0, 0,
-        //     1, 0, 0,
+            1, 0, 0, // 向右
+            1, 0, 0,
+            1, 0, 0,
+            1, 0, 0,
 
-        //     0, -1, 0, // 向下
-        //     0, -1, 0,
-        //     0, 1, 0, // 向上
-        //     0, 1, 0,
+            0, -1, 0, // 向下
+            0, -1, 0,
+            0, 1, 0, // 向上
+            0, 1, 0,
 
-        // ]);
+        ]);
         // uv贴图
         const uv = new Float32Array([
             0, 0,
@@ -134,10 +134,8 @@ class Wall {
 
         edge_geometry.attributes.position = new THREE.BufferAttribute(position, 3);
         edge_geometry.index = new THREE.BufferAttribute(index, 1);
-        // edge_geometry.attributes.normal = new THREE.BufferAttribute(normal, 3);
+        edge_geometry.attributes.normal = new THREE.BufferAttribute(normal, 3);
         edge_geometry.attributes.uv = new THREE.BufferAttribute(uv, 2);
-
-        edge_geometry.computeVertexNormals();
 
         const loader = new THREE.TextureLoader();
         const map_texture = loader.load('/static/img/wall_side.png');
