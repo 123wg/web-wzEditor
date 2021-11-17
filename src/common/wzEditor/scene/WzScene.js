@@ -62,9 +62,11 @@ export default class WzScene {
         // 根据线生成面
         // this.test_extrude_geometry();
         // 自定义buffer
-        this.custom_wall();
+        // this.custom_wall();
         // 测试椎体法向量生成
         // this.test_cone();
+        // 拖拽生成墙体
+        this.draw_create_wall();
 
         // 基础功能测试------end-----
 
@@ -1120,5 +1122,111 @@ export default class WzScene {
         // console.log(new THREE.Vector3(0, -1, 0).normalize());
         // v1.applyAxisAngle(new THREE.Vector3(2, 0, 2).normalize(), Math.PI / 4);
         // console.log(v1);
+    }
+
+    // 拖拽绘制墙体测试
+    draw_create_wall() {
+        // 创建点方法
+        // const create_point = (pos) => {
+        //     const geometry = new THREE.BufferGeometry();
+        //     const vertices = new Float32Array(pos);
+        //     console.log(vertices);
+        //     geometry.attributes.position = new THREE.BufferAttribute(vertices, 3);
+        //     const material = new THREE.PointsMaterial({
+        //         color: '#ff9900',
+        //         size: 1,
+        //     });
+        //     const point = new THREE.Points(geometry, material);
+        //     this.scene.add(point);
+        //     point.name = 'point';
+        // };
+
+        let start = new THREE.Vector3();
+        let end = new THREE.Vector3();
+        let is_drawing = false; // 是否正在绘制
+        const thick = 2;// 墙的厚度
+        // 墙的高度
+        const w_h = 8;
+        const loader = new THREE.TextureLoader();
+        const wall_texture = loader.load('/static/img/wall.png');
+        // 点击事件
+        this.create_wall_click = (c_evt) => {
+            if (!is_drawing) {
+                is_drawing = true;
+                this.right_face = null;
+                start = this.get_mouse_plane_pos(c_evt);
+                start.y = 0;
+                this.dom.addEventListener('mousemove', this.create_wall_move);
+            } else {
+                is_drawing = false;
+                this.dom.removeEventListener('mousemove', this.create_wall_move);
+            }
+        };
+        this.create_wall_move = (m_evt) => {
+            this.scene.remove(this.right_face);
+
+            end = this.get_mouse_plane_pos(m_evt);
+            end.y = 0;
+
+            // 下方向
+            const down_dir = new THREE.Vector3(0, -1, 0);
+            // 上方向
+            const top_dir = new THREE.Vector3(0, 1, 0);
+
+            // 绘制方向
+            const line_dir1 = new THREE.Vector3().subVectors(end, start).normalize();
+            // 绘制反方向
+            const line_dir2 = line_dir1.clone().negate();
+
+            // 右面法向
+            const normal_dir1 = new THREE.Vector3().crossVectors(down_dir, line_dir1).normalize();
+            // 左面法向
+            const normal_dir2 = normal_dir1.clone().negate();
+
+            // 左下角顶点
+            const left_bottom = normal_dir1.clone().multiplyScalar(thick / 2).add(start);
+            // 右下角顶点
+            const right_bottom = normal_dir1.clone().multiplyScalar(thick / 2).add(end);
+            // 左上角顶点
+            const left_top = normal_dir2.clone().multiplyScalar(thick / 2).add(start);
+            // 右上角顶点
+            const right_top = normal_dir2.clone().multiplyScalar(thick / 2).add(end);
+
+            // 绘制墙面
+            const face_geometry = new THREE.BufferGeometry();
+            const face_vertices = new Float32Array([
+                left_bottom.x, left_bottom.y, left_bottom.z,
+                right_bottom.x, right_bottom.y, right_bottom.z,
+                right_bottom.x, right_bottom.y + w_h, right_bottom.z,
+                left_bottom.x, left_bottom.y + w_h, left_bottom.z,
+            ]);
+            const face_normal = new Float32Array([
+                normal_dir1.x, normal_dir1.y, normal_dir1.z,
+                normal_dir1.x, normal_dir1.y, normal_dir1.z,
+                normal_dir1.x, normal_dir1.y, normal_dir1.z,
+                normal_dir1.x, normal_dir1.y, normal_dir1.z,
+            ]);
+            const face_index = new Uint16Array([0, 1, 2, 0, 2, 3]);
+            const face_uv = new Float32Array([
+                0, 0,
+                1, 0,
+                0, 1,
+                1, 1,
+            ]);
+            face_geometry.attributes.position = new THREE.BufferAttribute(face_vertices, 3);
+            face_geometry.index = new THREE.BufferAttribute(face_index, 1);
+            face_geometry.attributes.normal = new THREE.BufferAttribute(face_normal, 3);
+            face_geometry.attributes.uv = new THREE.BufferAttribute(face_uv, 2);
+
+            const face_material = new THREE.MeshStandardMaterial({
+                map: wall_texture,
+                polygonOffset: true,
+                polygonOffsetFactor: 1.0,
+                polygonOffsetUnits: 4.0,
+            });
+            this.right_face = new THREE.Mesh(face_geometry, face_material);
+            this.scene.add(this.right_face);
+        };
+        this.dom.addEventListener('click', this.create_wall_click);
     }
 }
