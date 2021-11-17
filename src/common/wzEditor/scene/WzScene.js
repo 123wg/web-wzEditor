@@ -61,8 +61,10 @@ export default class WzScene {
         // this.test_custom_point();
         // 根据线生成面
         // this.test_extrude_geometry();
-        // 自定义buffer
-        this.custom_wall();
+        // 自定义BufferGeometrfy 生层墙体
+        // this.custom_wall();
+        // 拖拽生成墙体测试
+        this.draw_create_wall();
 
         // 基础功能测试------end-----
 
@@ -1100,5 +1102,45 @@ export default class WzScene {
         const helper = new VertexNormalsHelper(edge_mesh, 2, 'red', 1);
         this.scene.add(helper);
         return edge_mesh;
+    }
+
+    // 拖拽生成墙体
+    draw_create_wall() {
+        let start = new THREE.Vector3();
+        let end = new THREE.Vector3();
+        // 是否正在绘制
+        let is_drawing = false;
+        // 下方向
+        const dir_down = new THREE.Vector3(0, -1, 0);
+        // 墙的厚度
+        const wall_thick = 1;
+
+        this.wall_create_move_fun = (m_evt) => {
+            end = this.get_mouse_plane_pos(m_evt);
+            // 计算起始点角度
+            const dir = new THREE.Vector3();
+            dir.subVectors(end, start);
+            dir.y = 0;
+            dir.normalize();
+            // 计算法向量
+            const normal_dir = new THREE.Vector3();
+            normal_dir.crossVectors(dir_down, dir);
+
+            normal_dir.multiplyScalar(wall_thick / 2);
+
+            const vertex_1 = new THREE.Vector3();
+            vertex_1.addVectors(normal_dir, start);
+            console.log(vertex_1);
+        };
+        this.wall_create_click_fun = (c_evt) => {
+            if (is_drawing) {
+                is_drawing = false;
+                this.dom.removeEventListener('mousemove', this.wall_create_move_fun);
+            } else {
+                start = this.get_mouse_plane_pos(c_evt);
+                this.dom.addEventListener('mousemove', this.wall_create_move_fun);
+            }
+        };
+        this.dom.addEventListener('click', this.wall_create_click_fun);
     }
 }
