@@ -27,7 +27,7 @@ class SceneManager {
         this.scene = new THREE.Scene();
         this._init_camera();
         this._init_render();
-        this._init_refer_line();
+        // this._init_refer_line();
         this._add_axes();
         this._init_sky(attr.skyUrl);
         this._init_mouse_control();
@@ -113,9 +113,9 @@ class SceneManager {
         this.scene.add(ambient);
 
         // 平行光
-        const light = new THREE.DirectionalLight();
-        light.position.set(2000, 5000, 3000);
-        this.scene.add(light);
+        // const light = new THREE.DirectionalLight();
+        // light.position.set(2000, 5000, 3000);
+        // this.scene.add(light);
     }
 
     // 开启渲染

@@ -23,7 +23,7 @@ class Ground {
     _create_aux_line() {
         for (let i = 0; i < 4; i += 1) {
             const geometry = new THREE.BoxGeometry(this._aux_width, this._aux_height, this._aux_depth);
-            const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+            const material = new THREE.MeshLambertMaterial({ color: 0x00ff00 });
             const cube = new THREE.Mesh(geometry, material);
             cube.visible = false;
             cube.position.x = this._start.x;
@@ -67,13 +67,13 @@ class Ground {
                 texture.wrapS = THREE.RepeatWrapping;
                 texture.wrapT = THREE.RepeatWrapping;
                 texture.repeat.set(10, 10);
-                const geometry = new THREE.BoxGeometry(obj.width, 0, obj.height);
+                const geometry = new THREE.BoxGeometry(obj.width, 0.01, obj.height);
                 const geometryMaterial = new THREE.MeshBasicMaterial({
                     map: texture,
                     side: THREE.DoubleSide,
                 });
                 const node = new THREE.Mesh(geometry, geometryMaterial);
-                node.position.y = 1;
+                node.position.y = 0.01;
                 node.position.x = obj.cen_x;
                 node.position.z = obj.cen_z;
                 node.name = this._type;

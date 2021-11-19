@@ -5,199 +5,163 @@
 * */
 import * as THREE from 'three';
 
-// import { VertexNormalsHelper } from 'three/examples/jsm/helpers/VertexNormalsHelper';
+// import { VertexNormalsHelper } from 'three/examples/jsm/helpers/VertexNormalsHelper'; // 法线辅助对象
 
 class Wall {
     constructor(scene) {
         this.scene = scene;
-        this.start = new THREE.Vector3(); // 起点
-        this.end = new THREE.Vector3();// 终点
-        // this.width = 0;// 长度
-        this.height = 20;// 宽度
-        this.depth = 2;// 高度
-        this._node = new THREE.Group();
+        this.start = new THREE.Vector3();
+        this.end = new THREE.Vector3();
+        this.thick = 2; // 厚度
+        this.heigth = 30;
+        this.node = new THREE.Group();
+        this.face_texture_url = '/static/img/wall.png';// 墙面贴图
+        this.edge_texture_url = '/static/img/wall_side.png';// 边缘贴图
+        this._init_material();
     }
 
-    // 创建墙体
-    _create_node() {
-        // 计算长度
-        const width = this.start.distanceTo(this.end);
-        // 生成墙面
-        const right_face = this._create_wall_face(width, this.depth, this.height, this.start, this.end, 'right');
-        const left_face = this._create_wall_face(width, this.depth, this.height, this.start, this.end, 'left');
-        // 生成边缘
-        const wall_edge = this._create_wall_edge(width, this.depth, this.height, this.start, this.end);
-        // 计算旋转角度
-
-        // const vec1 = new THREE.Vector3(1, 0, 0);
-        // const vec2 = this.end.clone().sub(this.start.clone());// 直接使用sub方法会改变之前的对象
-        // let angle = vec2.angleTo(vec1);
-        // const direc = vec2.cross(vec1).y;
-        // if (direc > 0) angle = 0 - angle;
-
-        this._node.position.set(this.start.x, this.start.y, this.start.z);
-        this._node.add(left_face, right_face, wall_edge);
-        this._node.position.y = 1;
-        // this._node.position.set(this.start.x, 0, this.start.y);
-        // this._node.rotation.y = angle;
+    // 初始化贴图材质
+    _init_material() {
+        const loader = new THREE.TextureLoader();
+        const face_texture = loader.load(this.face_texture_url);
+        const edge_texture = loader.load(this.edge_texture_url);
+        this.face_material = new THREE.MeshPhongMaterial({ map: face_texture });
+        this.edge_material = new THREE.MeshPhongMaterial({ map: edge_texture });
     }
 
-    // 创建边缘
-    _create_wall_edge(width, depth, height, start, end) {
-        const edge_geometry = new THREE.BufferGeometry();
-        const depth_offset = depth / 2;
-        // 生成顶点数据
-        const position = new Float32Array([
-            // 左面四个点
-            start.x, 0, -depth_offset, // 0 -- left       0
-            start.x, 0, depth_offset, // 1 --left         1
-            start.x, height, depth_offset, // 2 --left    2
-            start.x, height, -depth_offset, // 3 --left   3
+    // 计算基础属性
+    _cal_base() {
+        const { start, end } = this;
+        start.y = 0;
+        end.y = 0;
+        const h_dir = new THREE.Vector3(0, this.heigth, 0);
+        const down_dir = new THREE.Vector3(0, -1, 0); // 上下法向
+        const up_dir = new THREE.Vector3(0, 1, 0);
 
-            start.x, 0, -depth_offset, // 0 --bottom      4
-            start.x, 0, depth_offset, // 1 --bottom       5
-            start.x, height, depth_offset, // 2 --top     6
-            start.x, height, -depth_offset, // 3 --top    7
+        const line_dir1 = new THREE.Vector3(); // 两侧法向
+        const line_dir2 = new THREE.Vector3();
 
-            // 右面四个点
-            end.x, 0, -depth_offset, // 4 --right         8
-            end.x, 0, depth_offset, // 5 --right          9
-            end.x, height, depth_offset, // 6 --right     10
-            end.x, height, -depth_offset, // 7 --right    11
+        const normal_dir1 = new THREE.Vector3(); // 面法向
+        const normal_dir2 = new THREE.Vector3();
 
-            end.x, 0, -depth_offset, // 4 --bottom        12
-            end.x, 0, depth_offset, // 5 --bottom         13
-            end.x, height, depth_offset, // 6 --top       14
-            end.x, height, -depth_offset, // 7 --top      15
-        ]);
+        line_dir1.subVectors(end, start);
+        line_dir1.normalize();
+        line_dir2.copy(line_dir1.clone().negate());
 
-        // 顶点索引
-        const index = new Uint16Array([
-            // 左面
+        normal_dir1.crossVectors(down_dir, line_dir1);
+        normal_dir1.normalize();
+        normal_dir2.copy(normal_dir1.clone().negate());
+
+        const half_tick = this.thick / 2;
+
+        const r_len = normal_dir1.clone().multiplyScalar(half_tick);
+        const l_len = normal_dir2.clone().multiplyScalar(half_tick);
+        const l_b = start.clone().add(r_len); // 顶点数据
+        const r_b = end.clone().add(r_len);
+        const l_t = start.clone().add(l_len);
+        const r_t = end.clone().add(l_len);
+
+        const plan_v = [l_b, r_b, r_t, l_t];
+        const top_v = plan_v.map((item) => item.clone().add(h_dir));
+        const vertices = [...plan_v, ...top_v];
+        vertices.map((item) => item.toArray());
+
+        const normals = [up_dir, down_dir, line_dir2, line_dir1, normal_dir1, normal_dir2]; // 上下左右前后
+        normals.map((item) => item.toArray());
+
+        const vertices_1 = [ // right
+            ...vertices[0], ...vertices[1], ...vertices[5], ...vertices[4],
+        ];
+        const vertices_2 = [ // left
+            ...vertices[2], ...vertices[3], ...vertices[7], ...vertices[6],
+        ];
+        const vertices_3 = [
+            ...vertices[7], ...vertices[4], ...vertices[5], ...vertices[6], // 上
+            ...vertices[3], ...vertices[2], ...vertices[1], ...vertices[0], // 下
+            ...vertices[7], ...vertices[3], ...vertices[0], ...vertices[4], // 左
+            ...vertices[5], ...vertices[1], ...vertices[2], ...vertices[6], // 右
+        ];
+
+        const normal_1 = [...normals[4], ...normals[4], ...normals[4], ...normals[4]];
+        const normal_2 = [...normals[5], ...normals[5], ...normals[5], ...normals[5]];
+        const normal_3 = [
+            ...normals[0], ...normals[0], ...normals[0], ...normals[0],
+            ...normals[1], ...normals[1], ...normals[1], ...normals[1],
+            ...normals[2], ...normals[2], ...normals[2], ...normals[2],
+            ...normals[3], ...normals[3], ...normals[3], ...normals[3],
+        ];
+
+        const index_1 = [
             0, 1, 2,
             0, 2, 3,
-            // 右面
-            9, 8, 11,
-            9, 11, 10,
-            // 上面
-            6, 14, 15,
-            6, 15, 7,
-            // 下面
-            4, 12, 13,
-            4, 13, 5,
-        ]);
-        // 法向数据
-        const normal = new Float32Array([
-            -1, 0, 0,
-            -1, 0, 0,
-            -1, 0, 0,
-            -1, 0, 0, // 向左
-
-            0, -1, 0,
-            0, -1, 0, // 向下
-            0, 1, 0, // 向上
-            0, 1, 0,
-
-            1, 0, 0, // 向右
-            1, 0, 0,
-            1, 0, 0,
-            1, 0, 0,
-
-            0, -1, 0, // 向下
-            0, -1, 0,
-            0, 1, 0, // 向上
-            0, 1, 0,
-
-        ]);
-        // uv贴图
-        const uv = new Float32Array([
+        ];
+        const index_2 = index_1;
+        const index_3 = [
+            0, 1, 2, 0, 2, 3,
+            4, 5, 6, 4, 6, 7,
+            8, 9, 10, 8, 10, 11,
+            12, 13, 14, 12, 14, 15,
+        ];
+        const uv_1 = [
             0, 0,
             1, 0,
             1, 1,
             0, 1,
+        ];
+        const uv_2 = uv_1;
+        const uv_3 = [
+            ...uv_1,
+            ...uv_1,
+            ...uv_1,
+            ...uv_1,
+        ];
 
-            0, 0,
-            0, 1,
-            0, 0,
-            0, 1,
-
-            1, 0,
-            0, 0,
-            0, 1,
-            1, 1,
-
-            1, 0,
-            1, 1,
-            1, 0,
-            1, 1,
-        ]);
-
-        edge_geometry.attributes.position = new THREE.BufferAttribute(position, 3);
-        edge_geometry.index = new THREE.BufferAttribute(index, 1);
-        edge_geometry.attributes.normal = new THREE.BufferAttribute(normal, 3);
-        edge_geometry.attributes.uv = new THREE.BufferAttribute(uv, 2);
-
-        const loader = new THREE.TextureLoader();
-        const map_texture = loader.load('/static/img/wall_side.png');
-        const edge_material = new THREE.MeshPhongMaterial({
-            map: map_texture,
-        });
-
-        const edge_mesh = new THREE.Mesh(edge_geometry, edge_material);
-        edge_mesh.name = 'edge';
-        return edge_mesh;
+        this.right_face = {
+            vertices: vertices_1,
+            index: index_1,
+            normal: normal_1,
+            uv: uv_1,
+            material: this.face_material,
+        };
+        this.left_face = {
+            vertices: vertices_2,
+            index: index_2,
+            normal: normal_2,
+            uv: uv_2,
+            material: this.face_material,
+        };
+        this.edge_face = {
+            vertices: vertices_3,
+            index: index_3,
+            normal: normal_3,
+            uv: uv_3,
+            material: this.edge_material,
+        };
     }
 
-    // 创建墙面
-    _create_wall_face(width, depth, height, start, end, side) {
-        // 几何体
-        const wall_geometry = new THREE.BufferGeometry();
+    // 创建左侧面和右侧面
+    _init_mesh(mesh) {
+        const face_geometry = new THREE.BufferGeometry();
+        const vertices = new Float32Array(mesh.vertices);
+        const index = new Uint16Array(mesh.index);
+        const normal = new Float32Array(mesh.normal);
+        const uv = new Float32Array(mesh.uv);
+        face_geometry.attributes.position = new THREE.BufferAttribute(vertices, 3);
+        face_geometry.attributes.normal = new THREE.BufferAttribute(normal, 3);
+        face_geometry.index = new THREE.BufferAttribute(index, 1);
+        face_geometry.attributes.uv = new THREE.BufferAttribute(uv, 2);
+        const cube = new THREE.Mesh(face_geometry, mesh.material);
+        return cube;
+    }
 
-        const depth_offset = side === 'right' ? depth / 2 : -depth / 2;
-        // 顶点
-        const wall_vertices = new Float32Array([
-            start.x, 0, depth_offset,
-            end.x, 0, depth_offset,
-            end.x, height, depth_offset,
-            start.x, height, depth_offset,
-        ]);
-
-        // 顶点索引
-        const arr = side === 'right' ? [0, 1, 2, 0, 2, 3] : [1, 0, 3, 1, 3, 2];
-        const wall_index = new Uint16Array(arr);
-
-        const normal_direc = side === 'righgt' ? 1 : -1;
-
-        // 法线
-        const wall_normal = new Float32Array([
-            0, 0, normal_direc,
-            0, 0, normal_direc,
-            0, 0, normal_direc,
-            0, 0, normal_direc,
-        ]);
-
-        // uv坐标
-        const wall_uv = new Float32Array([
-            0, 0,
-            1, 0,
-            1, 1,
-            0, 1,
-        ]);
-
-        wall_geometry.attributes.position = new THREE.BufferAttribute(wall_vertices, 3);
-        wall_geometry.index = new THREE.BufferAttribute(wall_index, 1);
-        wall_geometry.attributes.normal = new THREE.BufferAttribute(wall_normal, 3);
-        wall_geometry.attributes.uv = new THREE.BufferAttribute(wall_uv, 2);
-
-        const loader = new THREE.TextureLoader();
-        const texture = loader.load('/static/img/RoomWall.png');
-        const wall_material = new THREE.MeshPhongMaterial({
-            map: texture,
-        });
-
-        const wall_mesh = new THREE.Mesh(wall_geometry, wall_material);
-
-        return wall_mesh;
+    // 创建节点
+    _create_node() {
+        this.node.remove(...this.node.children);
+        this._cal_base();// 计算基础属性
+        this.left_mesh = this._init_mesh(this.left_face);
+        this.right_mesh = this._init_mesh(this.right_face);
+        this.edge_mesh = this._init_mesh(this.edge_face);
+        this.node.add(this.left_mesh, this.right_mesh, this.edge_mesh);
     }
 }
 

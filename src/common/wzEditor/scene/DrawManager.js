@@ -4,6 +4,11 @@
 * @Date: 2021-11-05 15:22:48
 * */
 
+// TODO 2021-11-19
+// 1.考虑将事件管理器抽象出来 作为编辑器的工具统一管理
+// 2.绘制管理器考虑 选中、添加、删除物体、更新物体
+// 3.设备操作时候的状态管理器 的设计
+
 import * as THREE from 'three';
 import Ground from './Ground';
 import Fence from './Fence';
@@ -222,36 +227,39 @@ class DrawManager {
     // 绘制围墙
     drag_wall(evt_type) {
         if (!evt_type) {
-            this.dom.removeEventListener('click', this.wall_click_fun);
-            this.dom.removeEventListener('mousemove', this.wall_move_fun);
+            this.dom.removeEventListener('click', this.create_wall_click);
+            this.dom.removeEventListener('mousemove', this.create_wall_move);
             return;
         }
-        this._right_stop_draw_event();
-        // 是否正在绘制围墙
-        let is_draw_wall = false;
+
+        this._right_stop_draw_event(); // 右键停止
+
         let wall = null;
-        this.wall_click_fun = (c_evt) => {
-            if (!is_draw_wall) {
-                is_draw_wall = true;
-                wall = new Wall(this.scene);
-                const start = this.get_mouse_plane_pos(c_evt);
-                wall.start = start;
-                this.dom.addEventListener('mousemove', this.wall_move_fun);
+        let is_drawing_wall = false;
+
+        this.create_wall_move = (m_evt) => {
+            // 删除之前的node
+            this.scene.remove(wall._node);
+            wall.end = this.get_mouse_plane_pos(m_evt);
+
+            // 创建node
+            wall._create_node();
+            this.scene.add(wall.node);
+        };
+
+        this.create_wall_click = (c_evt) => {
+            if (!is_drawing_wall) {
+                wall = new Wall();
+                wall.start = this.get_mouse_plane_pos(c_evt);
+                this.dom.addEventListener('mousemove', this.create_wall_move);
+                is_drawing_wall = true;
             } else {
-                is_draw_wall = false;
-                this.dom.removeEventListener('mousemove', this.wall_move_fun);
+                is_drawing_wall = false;
+                this.dom.removeEventListener('mousemove', this.create_wall_move);
             }
         };
 
-        this.wall_move_fun = (m_evt) => {
-            wall._node.remove(...wall._node.children);
-            const end = this.get_mouse_plane_pos(m_evt);
-            wall.end = end;
-            wall._create_node();
-            this.scene.add(wall._node);
-        };
-
-        this.dom.addEventListener('click', this.wall_click_fun);
+        this.dom.addEventListener('click', this.create_wall_click);
     }
 }
 

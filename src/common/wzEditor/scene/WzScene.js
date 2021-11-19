@@ -38,12 +38,12 @@ export default class WzScene {
         this.init_mouse_control();// 开启鼠标控制
 
         this.init_sky(); // 初始化天空盒
-        // this.init_refer_line();// 初始化参考线
+        this.init_refer_line();// 初始化参考线
 
         this.add_axes();// 添加辅助线
 
         // this.add_box();// FIXME  添加立方体 --测试完成后删除
-        // this.add_gltf();
+        // this.add_gltf(); // 加载gltf 小人
         // this.listen_create_model();
         // this.add_floor(); // 添加地板
         this.select_model(); // 开启物体选中效果
@@ -1130,9 +1130,9 @@ export default class WzScene {
         let start = new THREE.Vector3();
         let end = new THREE.Vector3();
         let is_drawing = false; // 是否正在绘制
-        const thick = 2;// 墙的厚度
+        const thick = 1.5;// 墙的厚度
         // 墙的高度
-        const w_h = 12;
+        const w_h = 30;
         const loader = new THREE.TextureLoader();
         const wall_texture = loader.load('/static/img/wall.png');
         const edge_texture = loader.load('/static/img/wall_side.png');
