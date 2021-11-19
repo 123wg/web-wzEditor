@@ -5,7 +5,7 @@
 * */
 import * as THREE from 'three';
 
-import { VertexNormalsHelper } from 'three/examples/jsm/helpers/VertexNormalsHelper';
+// import { VertexNormalsHelper } from 'three/examples/jsm/helpers/VertexNormalsHelper';
 
 class Wall {
     constructor(scene) {
@@ -144,6 +144,7 @@ class Wall {
         });
 
         const edge_mesh = new THREE.Mesh(edge_geometry, edge_material);
+        edge_mesh.name = 'edge';
         return edge_mesh;
     }
 

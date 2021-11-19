@@ -104,9 +104,9 @@ class SceneManager {
     // 开启光照
     _init_light() {
         // 点光源
-        const point = new THREE.PointLight(0xffffff);
-        point.position.set(400, 200, 300);
-        this.scene.add(point);
+        // const point = new THREE.PointLight(0xffffff);
+        // point.position.set(400, 200, 300);
+        // this.scene.add(point);
 
         // 环境光
         const ambient = new THREE.AmbientLight(0xffffff);
@@ -114,7 +114,7 @@ class SceneManager {
 
         // 平行光
         const light = new THREE.DirectionalLight();
-        light.position.set(200, 500, 300);
+        light.position.set(2000, 5000, 3000);
         this.scene.add(light);
     }
 

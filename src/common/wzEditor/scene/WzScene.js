@@ -18,6 +18,7 @@ import { FontLoader } from 'three/examples/jsm/loaders/FontLoader';
 import { CSG } from 'three-csg-ts'; // 交集并集计算
 import { VertexNormalsHelper } from 'three/examples/jsm/helpers/VertexNormalsHelper';
 
+import { BufferAttribute } from 'three';
 import bus from '@/common/EventBus';
 
 export default class WzScene {
@@ -37,7 +38,7 @@ export default class WzScene {
         this.init_mouse_control();// 开启鼠标控制
 
         this.init_sky(); // 初始化天空盒
-        this.init_refer_line();// 初始化参考线
+        // this.init_refer_line();// 初始化参考线
 
         this.add_axes();// 添加辅助线
 
@@ -45,7 +46,7 @@ export default class WzScene {
         // this.add_gltf();
         // this.listen_create_model();
         // this.add_floor(); // 添加地板
-        // this.select_model(); // 开启物体选中效果
+        this.select_model(); // 开启物体选中效果
 
         // 基础功能测试------start-----
         // 测试贴图
@@ -61,9 +62,11 @@ export default class WzScene {
         // this.test_custom_point();
         // 根据线生成面
         // this.test_extrude_geometry();
-        // 自定义BufferGeometrfy 生层墙体
+        // 自定义buffer
         // this.custom_wall();
-        // 拖拽生成墙体测试
+        // 测试椎体法向量生成
+        // this.test_cone();
+        // 拖拽生成墙体
         this.draw_create_wall();
 
         // 基础功能测试------end-----
@@ -302,10 +305,10 @@ export default class WzScene {
         let selectedObjects = [];
         composer.addPass(renderPass);
         const outlinePass = new OutlinePass(new THREE.Vector2(width, height), this.scene, this.camera);
-        outlinePass.edgeStrength = 2;// 包围线浓度
+        outlinePass.edgeStrength = 5;// 包围线浓度
         outlinePass.edgeGlow = 0.5;// 边缘线范围
-        outlinePass.edgeThickness = 1;// 边缘线浓度
-        outlinePass.pulsePeriod = 3;// 包围线闪烁频率
+        outlinePass.edgeThickness = 2;// 边缘线浓度
+        outlinePass.pulsePeriod = 4;// 包围线闪烁频率
         outlinePass.visibleEdgeColor.set('#ff5050');// 包围线颜色
         outlinePass.hiddenEdgeColor.set('#190a05');// 被遮挡的边界线颜色
         composer.addPass(outlinePass);
@@ -937,14 +940,15 @@ export default class WzScene {
 
         const wall_1 = wall.clone();
         const wall_2 = wall.clone();
-        wall_2.translateX(50);
+        // wall_2.translateX(50);
         const group = new THREE.Group();
         group.add(wall_1, wall_2);
         this.scene.add(group);
-        group.rotateY(45);
+
+        // group.rotateY(45);
 
         // FIXME 测试合并顶点数据
-        console.log('准备顶点数据合并');
+        // console.log('准备顶点数据合并');
     }
 
     // 创建墙体算法
@@ -966,7 +970,7 @@ export default class WzScene {
         const wall_index = new Uint16Array(arr);
 
         const normal_direc = side === 'righgt' ? 1 : -1;
-        console.log(normal_direc);
+
         // 法线
         const wall_normal = new Float32Array([
             0, 0, normal_direc,
@@ -985,8 +989,10 @@ export default class WzScene {
 
         wall_geometry.attributes.position = new THREE.BufferAttribute(wall_vertices, 3);
         wall_geometry.index = new THREE.BufferAttribute(wall_index, 1);
+        // FIXME 这里不用自己算法向量
         wall_geometry.attributes.normal = new THREE.BufferAttribute(wall_normal, 3);
         wall_geometry.attributes.uv = new THREE.BufferAttribute(wall_uv, 2);
+        // wall_geometry.computeVertexNormals();
 
         const loader = new THREE.TextureLoader();
         const texture = loader.load('/static/img/RoomWall.png');
@@ -994,6 +1000,7 @@ export default class WzScene {
             map: texture,
         });
         const wall_mesh = new THREE.Mesh(wall_geometry, wall_material);
+
         return wall_mesh;
     }
 
@@ -1094,7 +1101,7 @@ export default class WzScene {
 
         const loader = new THREE.TextureLoader();
         const map_texture = loader.load('/static/img/wall_side.png');
-        const edge_material = new THREE.MeshPhongMaterial({
+        const edge_material = new THREE.MeshStandardMaterial({
             map: map_texture,
         });
 
@@ -1104,43 +1111,232 @@ export default class WzScene {
         return edge_mesh;
     }
 
-    // 拖拽生成墙体
+    // 测试椎体法向量
+    test_cone() {
+        const geometry = new THREE.ConeGeometry(5, 20, 32);
+        console.log(geometry);
+        const material = new THREE.MeshBasicMaterial({ color: 0xffff00 });
+        const cone = new THREE.Mesh(geometry, material);
+        this.scene.add(cone);
+
+        // const v1 = new THREE.Vector3();
+        // console.log(new THREE.Vector3(0, -1, 0).normalize());
+        // v1.applyAxisAngle(new THREE.Vector3(2, 0, 2).normalize(), Math.PI / 4);
+        // console.log(v1);
+    }
+
+    // 拖拽绘制墙体测试
     draw_create_wall() {
         let start = new THREE.Vector3();
         let end = new THREE.Vector3();
-        // 是否正在绘制
-        let is_drawing = false;
-        // 下方向
-        const dir_down = new THREE.Vector3(0, -1, 0);
-        // 墙的厚度
-        const wall_thick = 1;
-
-        this.wall_create_move_fun = (m_evt) => {
-            end = this.get_mouse_plane_pos(m_evt);
-            // 计算起始点角度
-            const dir = new THREE.Vector3();
-            dir.subVectors(end, start);
-            dir.y = 0;
-            dir.normalize();
-            // 计算法向量
-            const normal_dir = new THREE.Vector3();
-            normal_dir.crossVectors(dir_down, dir);
-
-            normal_dir.multiplyScalar(wall_thick / 2);
-
-            const vertex_1 = new THREE.Vector3();
-            vertex_1.addVectors(normal_dir, start);
-            console.log(vertex_1);
-        };
-        this.wall_create_click_fun = (c_evt) => {
-            if (is_drawing) {
-                is_drawing = false;
-                this.dom.removeEventListener('mousemove', this.wall_create_move_fun);
-            } else {
+        let is_drawing = false; // 是否正在绘制
+        const thick = 2;// 墙的厚度
+        // 墙的高度
+        const w_h = 12;
+        const loader = new THREE.TextureLoader();
+        const wall_texture = loader.load('/static/img/wall.png');
+        const edge_texture = loader.load('/static/img/wall_side.png');
+        // 点击事件
+        this.create_wall_click = (c_evt) => {
+            if (!is_drawing) {
+                is_drawing = true;
+                this.right_face = null;
+                this.left_face = null;
+                this.edge_face = null;
                 start = this.get_mouse_plane_pos(c_evt);
-                this.dom.addEventListener('mousemove', this.wall_create_move_fun);
+                start.y = 0;
+                this.dom.addEventListener('mousemove', this.create_wall_move);
+            } else {
+                is_drawing = false;
+                this.dom.removeEventListener('mousemove', this.create_wall_move);
             }
         };
-        this.dom.addEventListener('click', this.wall_create_click_fun);
+        this.create_wall_move = (m_evt) => {
+            this.scene.remove(this.right_face);
+            this.scene.remove(this.left_face);
+            this.scene.remove(this.edge_face);
+
+            end = this.get_mouse_plane_pos(m_evt);
+            end.y = 0;
+
+            // 下方向
+            const down_dir = new THREE.Vector3(0, -1, 0);
+            // 上方向
+            const top_dir = new THREE.Vector3(0, 1, 0);
+
+            // 绘制方向
+            const line_dir1 = new THREE.Vector3().subVectors(end, start).normalize();
+            // 绘制反方向
+            const line_dir2 = line_dir1.clone().negate();
+
+            // 右面法向
+            const normal_dir1 = new THREE.Vector3().crossVectors(down_dir, line_dir1).normalize();
+            // 左面法向
+            const normal_dir2 = normal_dir1.clone().negate();
+
+            // 左下角顶点
+            const left_bottom = normal_dir1.clone().multiplyScalar(thick / 2).add(start);
+            // 右下角顶点
+            const right_bottom = normal_dir1.clone().multiplyScalar(thick / 2).add(end);
+            // 左上角顶点
+            const left_top = normal_dir2.clone().multiplyScalar(thick / 2).add(start);
+            // 右上角顶点
+            const right_top = normal_dir2.clone().multiplyScalar(thick / 2).add(end);
+
+            //  右侧墙面
+            const face_geometry1 = new THREE.BufferGeometry();
+            const face_vertices1 = new Float32Array([
+                left_bottom.x, left_bottom.y, left_bottom.z,
+                right_bottom.x, right_bottom.y, right_bottom.z,
+                right_bottom.x, right_bottom.y + w_h, right_bottom.z,
+                left_bottom.x, left_bottom.y + w_h, left_bottom.z,
+            ]);
+            const face_normal1 = new Float32Array([
+                normal_dir1.x, normal_dir1.y, normal_dir1.z,
+                normal_dir1.x, normal_dir1.y, normal_dir1.z,
+                normal_dir1.x, normal_dir1.y, normal_dir1.z,
+                normal_dir1.x, normal_dir1.y, normal_dir1.z,
+            ]);
+            const face_index1 = new Uint16Array([0, 1, 2, 0, 2, 3]);
+            const face_uv1 = new Float32Array([
+                0, 0,
+                1, 0,
+                0, 1,
+                1, 1,
+            ]);
+            face_geometry1.attributes.position = new THREE.BufferAttribute(face_vertices1, 3);
+            face_geometry1.index = new THREE.BufferAttribute(face_index1, 1);
+            face_geometry1.attributes.normal = new THREE.BufferAttribute(face_normal1, 3);
+            face_geometry1.attributes.uv = new THREE.BufferAttribute(face_uv1, 2);
+
+            // 左侧墙
+            const face_geometry2 = new THREE.BufferGeometry();
+            const face_vertices2 = new Float32Array([
+                right_top.x, right_top.y, right_top.z,
+                left_top.x, left_top.y, left_top.z,
+                left_top.x, left_top.y + w_h, left_top.z,
+                right_top.x, right_top.y + w_h, right_top.z,
+            ]);
+            const face_normal2 = new Float32Array([
+                normal_dir2.x, normal_dir2.y, normal_dir2.z,
+                normal_dir2.x, normal_dir2.y, normal_dir2.z,
+                normal_dir2.x, normal_dir2.y, normal_dir2.z,
+                normal_dir2.x, normal_dir2.y, normal_dir2.z,
+            ]);
+            const face_index2 = new Uint16Array([0, 1, 2, 0, 2, 3]);
+            const face_uv2 = new Float32Array([
+                0, 0,
+                1, 0,
+                0, 1,
+                1, 1,
+            ]);
+            face_geometry2.attributes.position = new THREE.BufferAttribute(face_vertices2, 3);
+            face_geometry2.index = new THREE.BufferAttribute(face_index2, 1);
+            face_geometry2.attributes.normal = new THREE.BufferAttribute(face_normal2, 3);
+            face_geometry2.attributes.uv = new THREE.BufferAttribute(face_uv2, 2);
+
+            const face_material = new THREE.MeshStandardMaterial({
+                map: wall_texture,
+                polygonOffset: true,
+                polygonOffsetFactor: 1.0,
+                polygonOffsetUnits: 4.0,
+            });
+            this.right_face = new THREE.Mesh(face_geometry1, face_material);
+            this.left_face = new THREE.Mesh(face_geometry2, face_material);
+
+            // 创建边缘
+            const edge_geometry = new THREE.BufferGeometry();
+            const edge_vertices = new Float32Array([
+                left_top.x, left_top.y, left_top.z, // 0
+                left_bottom.x, left_bottom.y, left_bottom.z, // 1
+                left_bottom.x, left_bottom.y + w_h, left_bottom.z, // 2
+                left_top.x, left_top.y + w_h, left_top.z, // 3
+
+                right_top.x, right_top.y + w_h, right_top.z, // 4
+                right_bottom.x, right_bottom.y + w_h, right_bottom.z, // 5
+                right_bottom.x, right_bottom.y, right_bottom.z, // 6
+                right_top.x, right_top.y, right_top.z, // 7
+
+                left_top.x, left_top.y + w_h, left_top.z, // 3 8
+                left_bottom.x, left_bottom.y + w_h, left_bottom.z, // 2 9
+                right_bottom.x, right_bottom.y + w_h, right_bottom.z, // 6 10
+                right_top.x, right_top.y + w_h, right_top.z, // 7
+
+                left_bottom.x, left_bottom.y, left_bottom.z, // 1
+                left_top.x, left_top.y, left_top.z, // 0
+                right_top.x, right_top.y, right_top.z, // 7
+                right_bottom.x, right_bottom.y, right_bottom.z, // 6
+            ]);
+            const edge_index = new Uint16Array([
+                0, 1, 2, // 左面
+                0, 2, 3,
+
+                4, 5, 6, // 右面
+                4, 6, 7,
+
+                8, 9, 10, // 上面
+                8, 10, 11,
+
+                12, 13, 14, // 下面
+                12, 14, 15,
+            ]);
+            const edge_uv = new Float32Array([
+                0, 0,
+                1, 0,
+                0, 1,
+                1, 1,
+                0, 0,
+                1, 0,
+                0, 1,
+                1, 1,
+                0, 0,
+                1, 0,
+                0, 1,
+                1, 1,
+                0, 0,
+                1, 0,
+                0, 1,
+                1, 1,
+            ]);
+            const edge_normal = new Float32Array([
+                line_dir2.x, line_dir2.y, line_dir2.z,
+                line_dir2.x, line_dir2.y, line_dir2.z,
+                line_dir2.x, line_dir2.y, line_dir2.z,
+                line_dir2.x, line_dir2.y, line_dir2.z,
+
+                line_dir1.x, line_dir1.y, line_dir1.z,
+                line_dir1.x, line_dir1.y, line_dir1.z,
+                line_dir1.x, line_dir1.y, line_dir1.z,
+                line_dir1.x, line_dir1.y, line_dir1.z,
+
+                top_dir.x, top_dir.y, top_dir.z,
+                top_dir.x, top_dir.y, top_dir.z,
+                top_dir.x, top_dir.y, top_dir.z,
+                top_dir.x, top_dir.y, top_dir.z,
+
+                down_dir.x, down_dir.y, down_dir.z,
+                down_dir.x, down_dir.y, down_dir.z,
+                down_dir.x, down_dir.y, down_dir.z,
+                down_dir.x, down_dir.y, down_dir.z,
+            ]);
+
+            const edge_material = new THREE.MeshPhongMaterial({
+                map: edge_texture,
+            });
+            edge_geometry.attributes.position = new THREE.BufferAttribute(edge_vertices, 3);
+            edge_geometry.index = new THREE.BufferAttribute(edge_index, 1);
+            edge_geometry.attributes.uv = new BufferAttribute(edge_uv, 2);
+            edge_geometry.attributes.normal = new THREE.BufferAttribute(edge_normal, 3);
+            this.edge_face = new THREE.Mesh(edge_geometry, edge_material);
+            this.scene.add(this.edge_face);
+            this.scene.add(this.left_face);
+            this.scene.add(this.right_face);
+        };
+        this.dom.addEventListener('click', this.create_wall_click);
+
+        this.dom.addEventListener('contextmenu', (co_evt) => {
+            this.dom.removeEventListener('click', this.create_wall_click);
+            this.dom.removeEventListener('mousemove', this.create_wall_move);
+        });
     }
 }
