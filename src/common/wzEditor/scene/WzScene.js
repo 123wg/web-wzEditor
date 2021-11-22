@@ -17,7 +17,7 @@ import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry';
 import { FontLoader } from 'three/examples/jsm/loaders/FontLoader';
 import { CSG } from 'three-csg-ts'; // 交集并集计算
 import { VertexNormalsHelper } from 'three/examples/jsm/helpers/VertexNormalsHelper';
-
+import Stats from 'stats.js';
 import { BufferAttribute } from 'three';
 import bus from '@/common/EventBus';
 
@@ -42,11 +42,13 @@ export default class WzScene {
 
         this.add_axes();// 添加辅助线
 
+        this.add_performance();// 性能监控面板
+
         // this.add_box();// FIXME  添加立方体 --测试完成后删除
         // this.add_gltf(); // 加载gltf 小人
         // this.listen_create_model();
         // this.add_floor(); // 添加地板
-        this.select_model(); // 开启物体选中效果
+        // this.select_model(); // 开启物体选中效果
 
         // 基础功能测试------start-----
         // 测试贴图
@@ -67,7 +69,10 @@ export default class WzScene {
         // 测试椎体法向量生成
         // this.test_cone();
         // 拖拽生成墙体
-        this.draw_create_wall();
+        // this.draw_create_wall();
+
+        // 点击生成封闭区域检测
+        this.test_close_inspection();
 
         // 基础功能测试------end-----
 
@@ -129,10 +134,12 @@ export default class WzScene {
     }
 
     start_render() {
+        if (this.stats) this.stats.begin();
         // FIXME requestAnimationFrame this指向问题
         this.renderer.render(this.scene, this.camera);
         if (this.testaaa) this.testaaa.render();
         if (this.controls) this.controls.update();
+        if (this.stats) this.stats.end();
         requestAnimationFrame(this.start_render.bind(this));
     }
 
@@ -180,6 +187,13 @@ export default class WzScene {
     add_axes() {
         const axesHelper = new THREE.AxesHelper(500);
         this.scene.add(axesHelper);
+    }
+
+    // 性能监控面板
+    add_performance() {
+        this.stats = new Stats();
+        this.stats.showPanel(0);
+        document.body.appendChild(this.stats.dom);
     }
 
     // 初始化灯光
@@ -1337,6 +1351,85 @@ export default class WzScene {
         this.dom.addEventListener('contextmenu', (co_evt) => {
             this.dom.removeEventListener('click', this.create_wall_click);
             this.dom.removeEventListener('mousemove', this.create_wall_move);
+        });
+    }
+
+    /**
+    *Line3 --数学库
+    *points=>Shape=> ShapeGeomertry()->ShapeBufferGeometry()
+    *
+    */
+    // 测试封闭区域检测
+    test_close_inspection() {
+        // 点数组
+        const points = [];
+
+        // 是否正在绘制线条
+        let is_drawing_line = false;
+
+        // 是否允许绘制
+        let is_allow = true;
+
+        const create_line_fun = (ps) => {
+            // HACK 测试动态设置线条的顶点
+            // 线条
+            const line_geometry = new THREE.BufferGeometry();
+            line_geometry.setFromPoints(ps);
+            const line_material = new THREE.LineBasicMaterial({
+                color: '',
+            });
+            const line = new THREE.Line(line_geometry, line_material);
+            return line;
+        };
+
+        this.dom.addEventListener('click', (c_evt) => {
+            if (!is_allow) return;
+            const start = this.get_mouse_plane_pos(c_evt);
+            start.y = 0;
+            points.push(start);
+            is_drawing_line = true;
+        });
+
+        // 鼠标移动事件 绘制线条
+        this.dom.addEventListener('mousemove', (m_evt) => {
+            if (!is_allow) return;
+            if (!is_drawing_line) return;
+            if (this.line) this.scene.remove(this.line);
+
+            const end = this.get_mouse_plane_pos(m_evt);
+            if (points.length > 1) points.pop();
+            points.push(end);
+
+            this.line = create_line_fun(points);
+            this.scene.add(this.line);
+        });
+
+        // 鼠标右键停止绘制
+        this.dom.addEventListener('contextmenu', () => {
+            is_allow = false;
+            is_drawing_line = false;
+
+            if (points.length >= 3) {
+                const points_2 = [];
+                points.forEach((item) => {
+                    points_2.push(new THREE.Vector2(item.x, item.z));
+                });
+                // 顶点创建shape
+                const shape = new THREE.Shape(points_2);
+                shape.autoClose = true;
+
+                // 创建面
+                const floor_geometry = new THREE.ShapeGeometry(shape);
+                console.log(floor_geometry);
+                const floor_material = new THREE.MeshLambertMaterial({
+                    color: 'green',
+                    side: THREE.DoubleSide,
+                });
+
+                const mesh = new THREE.Mesh(floor_geometry, floor_material);
+                mesh.rotateX(Math.PI / 2);
+                this.scene.add(mesh);
+            }
         });
     }
 }
