@@ -1348,7 +1348,7 @@ export default class WzScene {
         };
         this.dom.addEventListener('click', this.create_wall_click);
 
-        this.dom.addEventListener('contextmenu', (co_evt) => {
+        this.dom.addEventListener('contextmenu', () => {
             this.dom.removeEventListener('click', this.create_wall_click);
             this.dom.removeEventListener('mousemove', this.create_wall_move);
         });
@@ -1382,16 +1382,17 @@ export default class WzScene {
             return line;
         };
 
-        this.dom.addEventListener('click', (c_evt) => {
+        // 点击获取点
+        this.inspec_click_fun = (c_evt) => {
+            console.log('点击事件');
             if (!is_allow) return;
             const start = this.get_mouse_plane_pos(c_evt);
             start.y = 0;
             points.push(start);
             is_drawing_line = true;
-        });
+        };
 
-        // 鼠标移动事件 绘制线条
-        this.dom.addEventListener('mousemove', (m_evt) => {
+        this.inspec_move_fun = (m_evt) => {
             if (!is_allow) return;
             if (!is_drawing_line) return;
             if (this.line) this.scene.remove(this.line);
@@ -1402,34 +1403,64 @@ export default class WzScene {
 
             this.line = create_line_fun(points);
             this.scene.add(this.line);
-        });
+        };
 
-        // 鼠标右键停止绘制
-        this.dom.addEventListener('contextmenu', () => {
+        // 鼠标右击事件
+        this.inspec_context_fun = () => {
+            this.dom.removeEventListener('contextmenu', this.inspec_context_fun);
+            this.dom.removeEventListener('click', this.inspec_click_fun);
+            this.dom.removeEventListener('mousemove', this.inspec_move_fun);
             is_allow = false;
             is_drawing_line = false;
-
+            points.pop();
             if (points.length >= 3) {
                 const points_2 = [];
                 points.forEach((item) => {
                     points_2.push(new THREE.Vector2(item.x, item.z));
                 });
-                // 顶点创建shape
-                const shape = new THREE.Shape(points_2);
-                shape.autoClose = true;
+                points_2.push(new THREE.Vector2(points[0].x, points[0].z));
 
-                // 创建面
-                const floor_geometry = new THREE.ShapeGeometry(shape);
-                console.log(floor_geometry);
-                const floor_material = new THREE.MeshLambertMaterial({
-                    color: 'green',
-                    side: THREE.DoubleSide,
+                console.log('----------points_2----------');
+                console.log(points_2);
+
+                // FIXME 测试 turf 给线段生成多边形
+                const arr = [];
+                points_2.forEach((item) => {
+                    const tmp_arr = [];
+                    tmp_arr.push(item.x);
+                    tmp_arr.push(item.y);
+                    arr.push(tmp_arr);
                 });
+                // // --------------测试start-------------
 
-                const mesh = new THREE.Mesh(floor_geometry, floor_material);
-                mesh.rotateX(Math.PI / 2);
-                this.scene.add(mesh);
+                // FIXME 这里还有个小问题，外面的多边形填充了，里面的有镂空现象,再想想其它方法
+                const poly = turf.polygon([arr]);
+                // 接收一个有自相交的面要素(Polygon)，计算并返回没有自相交的面要素集合，如果入参没有自相交，则返回入参数据的要素集
+                const result = turf.unkinkPolygon(poly); // 未扭结的值
+
+                console.log('正常的点');
+                console.log(result.features);
+
+                result.features.forEach((item) => {
+                    const arrs = item.geometry.coordinates[0];
+                    // FIXME 这里需要根据顶点重新拆分
+                    const points_3 = arrs.map((items) => new THREE.Vector2(items[0], items[1]));
+                    const shape = new THREE.Shape(points_3);// 顶点创建shape
+                    // 创建面
+                    const floor_geometry = new THREE.ShapeGeometry(shape);
+                    const floor_material = new THREE.MeshLambertMaterial({
+                        color: 'green',
+                        side: THREE.DoubleSide,
+                    });
+                    const mesh = new THREE.Mesh(floor_geometry, floor_material);
+                    mesh.rotateX(Math.PI / 2);
+                    this.scene.add(mesh);
+                });
             }
-        });
+        };
+
+        this.dom.addEventListener('click', this.inspec_click_fun);
+        this.dom.addEventListener('mousemove', this.inspec_move_fun);
+        this.dom.addEventListener('contextmenu', this.inspec_context_fun);
     }
 }

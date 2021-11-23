@@ -12,6 +12,11 @@
 - 禁用vulture 使用 volar
 - 括号配对着色(Bracket Pair Colorizer) 插件
 - 卸载 Vue VSCode Snippets 使用 Vue3 Snippets
+
+
+## 依赖库修改记录
+
+
 ```
     解决别名报错问题 
     https://www.jianshu.com/p/f3f03fa9ab42
@@ -70,5 +75,7 @@ v1.0.2 TODO
     - 编辑展示各种状态模式设计 0
 ----------技术调研-----------
     - 导入导出
+
+
 
 

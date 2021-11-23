@@ -41,6 +41,7 @@ module.exports = {
     },
     globals: {
         wzEditor: true,
+        turf: true,
     },
     settings: {
         'import/extensions': ['.js', '.jsx', 'ts', 'tsx'],
