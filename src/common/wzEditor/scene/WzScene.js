@@ -20,6 +20,7 @@ import { VertexNormalsHelper } from 'three/examples/jsm/helpers/VertexNormalsHel
 import Stats from 'stats.js';
 import { BufferAttribute } from 'three';
 import bus from '@/common/EventBus';
+import enclosed_area from './BFS';
 
 export default class WzScene {
     constructor() {
@@ -1420,31 +1421,18 @@ export default class WzScene {
                 });
                 points_2.push(new THREE.Vector2(points[0].x, points[0].z));
 
-                console.log('----------points_2----------');
-                console.log(points_2);
-
-                // FIXME 测试 turf 给线段生成多边形
-                const arr = [];
-                points_2.forEach((item) => {
-                    const tmp_arr = [];
-                    tmp_arr.push(item.x);
-                    tmp_arr.push(item.y);
-                    arr.push(tmp_arr);
+                const info = enclosed_area(points_2);
+                console.log(info);
+                const new_points = info.points;
+                // 根据位置创建文字
+                new_points.forEach((item, index) => {
+                    const pos = new THREE.Vector3(item.x, 0, item.y);
+                    const value = index;
+                    this.add_vertex_point(pos, value);
                 });
-                // // --------------测试start-------------
 
-                // FIXME 这里还有个小问题，外面的多边形填充了，里面的有镂空现象,再想想其它方法
-                const poly = turf.polygon([arr]);
-                // 接收一个有自相交的面要素(Polygon)，计算并返回没有自相交的面要素集合，如果入参没有自相交，则返回入参数据的要素集
-                const result = turf.unkinkPolygon(poly); // 未扭结的值
-
-                console.log('正常的点');
-                console.log(result.features);
-
-                result.features.forEach((item) => {
-                    const arrs = item.geometry.coordinates[0];
-                    // FIXME 这里需要根据顶点重新拆分
-                    const points_3 = arrs.map((items) => new THREE.Vector2(items[0], items[1]));
+                info.closed_arr.forEach((item) => {
+                    const points_3 = item.map((items) => new THREE.Vector2(new_points[items].x, new_points[items].y));
                     const shape = new THREE.Shape(points_3);// 顶点创建shape
                     // 创建面
                     const floor_geometry = new THREE.ShapeGeometry(shape);
@@ -1462,5 +1450,26 @@ export default class WzScene {
         this.dom.addEventListener('click', this.inspec_click_fun);
         this.dom.addEventListener('mousemove', this.inspec_move_fun);
         this.dom.addEventListener('contextmenu', this.inspec_context_fun);
+    }
+
+    // 测试封闭多边形 显示顶点
+    add_vertex_point(pos, value) {
+        const loader = new FontLoader();
+        loader.load('/static/font/KaiTi_Regular.json', (font) => {
+            const facade_text = new TextGeometry(`${value}`, {
+                font,
+                size: 10,
+                height: 0.1,
+                curveSegments: 12,
+                bevelEnabled: true,
+                bevelThickness: 0.1,
+                bevelSize: 0.05,
+                bevelSegments: 3,
+            });
+            const text_material = new THREE.MeshBasicMaterial({ color: 0x0000ff });
+            const text_cube = new THREE.Mesh(facade_text, text_material);
+            text_cube.position.set(pos.x, pos.y, pos.z);
+            this.scene.add(text_cube);
+        });
     }
 }
