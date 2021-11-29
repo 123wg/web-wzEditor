@@ -54,31 +54,37 @@ class Graph {
         console.log(this.adj); // 已经找出所有封闭区域 ？？？ 还是没完全理解
         for (let i = 0; i < this.adj.length; i += 1) {
             const obj = this.adj[i];
-            let u = i;
+            const u = i;
 
             if (obj.M.length > 0) {
                 // 循环
                 for (let j = 0; j < obj.M.length; j += 1) {
-                    let v = obj.M[j];
+                    const v = obj.M[j];
                     const dv = this.adj[v].D;
                     const du = this.adj[u].D;
 
                     const L = [];
+                    console.log('----------');
+                    console.log(u);
+                    console.log(v);
                     if (dv === du) {
                         L.push(u);
                         L.push(v);
 
+                        let tmp_u = u;
+                        let tmp_v = v;
+
                         while (1) {
-                            const pu = this.adj[u].P;
-                            const pv = this.adj[v].P;
+                            const pu = this.adj[tmp_u].P;
+                            const pv = this.adj[tmp_v].P;
                             if (pv === pu) {
                                 L.unshift(pv);
                                 break;
                             } else {
-                                u = pu;
-                                v = pv;
-                                L.unshift(u);
-                                L.push(v);
+                                tmp_u = pu;
+                                tmp_v = pv;
+                                L.unshift(tmp_u);
+                                L.push(tmp_v);
                             }
                         }
                     } else if (dv + 1 === du) {
@@ -86,19 +92,21 @@ class Graph {
                         L.push(pu);
                         L.push(u);
                         L.push(v);
-                        u = pu;
+                        let tmp_u = pu;
+                        let tmp_v = v;
+                        // u = pu;
 
                         while (1) {
-                            pu = this.adj[u].P;
-                            const pv = this.adj[v].P;
+                            pu = this.adj[tmp_u].P;
+                            const pv = this.adj[tmp_v].P;
                             if (pv === pu) {
                                 L.unshift(pv);
                                 break;
                             } else {
-                                u = pu;
-                                v = pv;
-                                L.unshift(u);
-                                L.push(v);
+                                tmp_u = pu;
+                                tmp_v = pv;
+                                L.unshift(tmp_u);
+                                L.push(tmp_v);
                             }
                         }
                     }
@@ -259,7 +267,7 @@ export default function enclosed_area(arr) {
 
     console.log(graph);
 
-    const closed_arr = graph.bfs(5);
+    const closed_arr = graph.bfs(0);
     return {
         closed_arr,
         points,
