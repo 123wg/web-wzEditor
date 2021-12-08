@@ -20,7 +20,7 @@ import { VertexNormalsHelper } from 'three/examples/jsm/helpers/VertexNormalsHel
 import Stats from 'stats.js';
 import { BufferAttribute } from 'three';
 import bus from '@/common/EventBus';
-import enclosed_area from './BFS';
+import Graph from './BFS';
 
 export default class WzScene {
     constructor() {
@@ -1421,29 +1421,8 @@ export default class WzScene {
                 });
                 points_2.push(new THREE.Vector2(points[0].x, points[0].z));
 
-                const info = enclosed_area(points_2);
-                console.log(info);
-                const new_points = info.points;
-                // 根据位置创建文字
-                new_points.forEach((item, index) => {
-                    const pos = new THREE.Vector3(item.x, 0, item.y);
-                    const value = index;
-                    this.add_vertex_point(pos, value);
-                });
-
-                info.closed_arr.forEach((item) => {
-                    const points_3 = item.map((items) => new THREE.Vector2(new_points[items].x, new_points[items].y));
-                    const shape = new THREE.Shape(points_3);// 顶点创建shape
-                    // 创建面
-                    const floor_geometry = new THREE.ShapeGeometry(shape);
-                    const floor_material = new THREE.MeshLambertMaterial({
-                        color: 'green',
-                        side: THREE.DoubleSide,
-                    });
-                    const mesh = new THREE.Mesh(floor_geometry, floor_material);
-                    mesh.rotateX(Math.PI / 2);
-                    this.scene.add(mesh);
-                });
+                const graph = new Graph(points_2);
+                console.log(graph);
             }
         };
 
@@ -1453,23 +1432,23 @@ export default class WzScene {
     }
 
     // 测试封闭多边形 显示顶点
-    add_vertex_point(pos, value) {
-        const loader = new FontLoader();
-        loader.load('/static/font/KaiTi_Regular.json', (font) => {
-            const facade_text = new TextGeometry(`${value}`, {
-                font,
-                size: 10,
-                height: 0.1,
-                curveSegments: 12,
-                bevelEnabled: true,
-                bevelThickness: 0.1,
-                bevelSize: 0.05,
-                bevelSegments: 3,
-            });
-            const text_material = new THREE.MeshBasicMaterial({ color: 0x0000ff });
-            const text_cube = new THREE.Mesh(facade_text, text_material);
-            text_cube.position.set(pos.x, pos.y, pos.z);
-            this.scene.add(text_cube);
-        });
-    }
+    // add_vertex_point(pos, value) {
+    //     const loader = new FontLoader();
+    //     loader.load('/static/font/KaiTi_Regular.json', (font) => {
+    //         const facade_text = new TextGeometry(`${value}`, {
+    //             font,
+    //             size: 10,
+    //             height: 0.1,
+    //             curveSegments: 12,
+    //             bevelEnabled: true,
+    //             bevelThickness: 0.1,
+    //             bevelSize: 0.05,
+    //             bevelSegments: 3,
+    //         });
+    //         const text_material = new THREE.MeshBasicMaterial({ color: 0x0000ff });
+    //         const text_cube = new THREE.Mesh(facade_text, text_material);
+    //         text_cube.position.set(pos.x, pos.y, pos.z);
+    //         this.scene.add(text_cube);
+    //     });
+    // }
 }
