@@ -22,9 +22,11 @@ class Room {
         // 创建地板
         const shape = new THREE.Shape(this.points);
         const geometry = new THREE.ShapeGeometry(shape);
+        const loader = new THREE.TextureLoader();
+        const img = loader.load('/static/img/ground.jpg');
         const material = new THREE.MeshLambertMaterial({
-            color: 0x00ff00,
             side: THREE.DoubleSide,
+            map: img,
         });
         const mesh = new THREE.Mesh(geometry, material);
         mesh.rotateX(Math.PI / 2);
