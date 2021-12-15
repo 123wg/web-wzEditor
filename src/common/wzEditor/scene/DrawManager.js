@@ -14,6 +14,7 @@ import Ground from './Ground';
 import Fence from './Fence';
 import Substance from './Substance';
 import BuildSign from './BuildSign';
+import Floor from './Floor';
 import Wall from './Wall';
 
 class DrawManager {
@@ -224,42 +225,51 @@ class DrawManager {
         this.dom.addEventListener('click', this.build_sign_click);
     }
 
-    // 绘制围墙
+    /**
+    * 点击绘制围墙的时候 事件操作
+    * 注册点击事件和移动事件
+    * 点击的时候 采集点位 判断多边形操作
+    * 移动的时候 获取上一点位和当前点位 绘制围墙，和现有的围墙和房间剥离开来
+    */
     drag_wall(evt_type) {
+        const floor = new Floor(this.scene);
+        const points = [];
+        // 当前正在绘制的围墙
+        let draw_wall = null;
+        this._right_stop_draw_event();
         if (!evt_type) {
-            this.dom.removeEventListener('click', this.create_wall_click);
-            this.dom.removeEventListener('mousemove', this.create_wall_move);
-            return;
+            console.log('停止');
+            draw_wall = null;
+            this.dom.removeEventListener('click', this.wall_click_fun);
+            this.dom.removeEventListener('mousemove', this.wall_move_fun);
         }
+        this.wall_click_fun = (c_evt) => {
+            console.log('测试');
+            draw_wall = new Wall();
+            const point = this.get_mouse_plane_pos(c_evt);
+            point.y = 0;
+            points.push(point);
 
-        this._right_stop_draw_event(); // 右键停止
-
-        let wall = null;
-        let is_drawing_wall = false;
-
-        this.create_wall_move = (m_evt) => {
-            // 删除之前的node
-            this.scene.remove(wall._node);
-            wall.end = this.get_mouse_plane_pos(m_evt);
-
-            // 创建node
-            wall._create_node();
-            this.scene.add(wall.node);
+            // 判断点数
+            floor.points = points;
+            floor.update();
         };
 
-        this.create_wall_click = (c_evt) => {
-            if (!is_drawing_wall) {
-                wall = new Wall();
-                wall.start = this.get_mouse_plane_pos(c_evt);
-                this.dom.addEventListener('mousemove', this.create_wall_move);
-                is_drawing_wall = true;
-            } else {
-                is_drawing_wall = false;
-                this.dom.removeEventListener('mousemove', this.create_wall_move);
-            }
+        this.wall_move_fun = (m_evt) => {
+            const point = this.get_mouse_plane_pos(m_evt);
+            point.y = 0;
+            const pre_point = points[points.length - 1];
+            // 开始绘制 清空当前正在绘制的对象
+            if (!pre_point) return;
+            draw_wall.start = pre_point;
+            draw_wall.end = point;
+            draw_wall._create_node();
+            // FIXME 这里不做处理的话 需要观察GPU和CPU的变化
+            this.scene.add(draw_wall.node);
         };
-
-        this.dom.addEventListener('click', this.create_wall_click);
+        // 围墙组
+        this.dom.addEventListener('click', this.wall_click_fun);
+        this.dom.addEventListener('mousemove', this.wall_move_fun);
     }
 }
 
