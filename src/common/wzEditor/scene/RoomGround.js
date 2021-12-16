@@ -14,12 +14,16 @@ class RoomGround {
 
     // TODO 创建房间节点
     create_node() {
-        // 创建天花板，天花板默认是隐藏的  这里需要考虑后续的层级管理的设计，读取当前所在的层级
-        // 创建地板
         const shape = new THREE.Shape(this.points);
         const geometry = new THREE.ShapeGeometry(shape);
-        const material = new THREE.MeshLambertMaterial({ color: 0x00ff00 });
+        const loader = new THREE.TextureLoader();
+        const img = loader.load('/static/img/ground.jpg');
+        const material = new THREE.MeshLambertMaterial({
+            side: THREE.DoubleSide,
+            map: img,
+        });
         const mesh = new THREE.Mesh(geometry, material);
+        mesh.rotateX(Math.PI / 2);
         this.node.add(mesh);
     }
 }

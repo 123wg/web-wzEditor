@@ -242,6 +242,7 @@ class DrawManager {
             draw_wall = null;
             this.dom.removeEventListener('click', this.wall_click_fun);
             this.dom.removeEventListener('mousemove', this.wall_move_fun);
+            return;
         }
         this.wall_click_fun = (c_evt) => {
             console.log('测试');
