@@ -21,6 +21,7 @@ import Stats from 'stats.js';
 import { BufferAttribute } from 'three';
 import bus from '@/common/EventBus';
 import Graph from './BFS';
+import Wall from '@/common/WzEditor/scene/Wall';
 
 export default class WzScene {
     constructor() {
@@ -71,9 +72,11 @@ export default class WzScene {
         // this.test_cone();
         // 拖拽生成墙体
         // this.draw_create_wall();
+        // 墙上绘制门窗
+        this.draw_door();
 
         // 点击生成封闭区域检测
-        this.test_close_inspection();
+        // this.test_close_inspection();
 
         // 基础功能测试------end-----
 
@@ -1431,24 +1434,24 @@ export default class WzScene {
         this.dom.addEventListener('contextmenu', this.inspec_context_fun);
     }
 
-    // 测试封闭多边形 显示顶点
-    // add_vertex_point(pos, value) {
-    //     const loader = new FontLoader();
-    //     loader.load('/static/font/KaiTi_Regular.json', (font) => {
-    //         const facade_text = new TextGeometry(`${value}`, {
-    //             font,
-    //             size: 10,
-    //             height: 0.1,
-    //             curveSegments: 12,
-    //             bevelEnabled: true,
-    //             bevelThickness: 0.1,
-    //             bevelSize: 0.05,
-    //             bevelSegments: 3,
-    //         });
-    //         const text_material = new THREE.MeshBasicMaterial({ color: 0x0000ff });
-    //         const text_cube = new THREE.Mesh(facade_text, text_material);
-    //         text_cube.position.set(pos.x, pos.y, pos.z);
-    //         this.scene.add(text_cube);
-    //     });
-    // }
+    // 测试在墙上画门
+    draw_door() {
+        // 注册点击事件拾取位置
+        const wall = new Wall(this.scene);
+        const start = new THREE.Vector3(-44.275354894211006, 0, -25.706564439374404);
+        const end = new THREE.Vector3(227.83783249779577, 0, -166.84207427248873);
+        wall.start = start;
+        wall.end = end;
+        wall._create_node();
+        this.scene.add(wall.node);
+
+        // 加载一个墙的模型
+        //
+
+        // 给定开始点和结束点 绘制围墙
+        // 开启鼠标拾取检测
+        // 当鼠标碰到墙的时候 绘制门大小的平面
+        // 考虑用holes 去重新制作围墙 打孔 还是用bsp算法区交集
+        // 模型有两种形式 1.图片自己uv贴图 2.固定宽高的模型
+    }
 }
