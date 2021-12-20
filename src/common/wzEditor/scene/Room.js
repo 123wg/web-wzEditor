@@ -21,8 +21,8 @@ class Room {
         this.roof.points = this.points;
         this.ground.create_node();
         this.roof.create_node();
-        this.scene.add(this.ground.node);
-        this.scene.add(this.roof.node);
+        this.node.add(this.ground.node);
+        this.node.add(this.roof.node);
     }
 }
 

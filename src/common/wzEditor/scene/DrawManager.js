@@ -245,15 +245,18 @@ class DrawManager {
             return;
         }
         this.wall_click_fun = (c_evt) => {
+            // 点击的时候 删除所有的墙
             console.log('测试');
             draw_wall = new Wall();
             const point = this.get_mouse_plane_pos(c_evt);
             point.y = 0;
             points.push(point);
 
-            // 判断点数
+            // TODO 删除当前楼层中所有的墙 --需要考虑多次绘制的情况
             floor.points = points;
             floor.update();
+            this.scene.add(floor.node);
+            console.log(floor);
         };
 
         this.wall_move_fun = (m_evt) => {
@@ -265,8 +268,7 @@ class DrawManager {
             draw_wall.start = pre_point;
             draw_wall.end = point;
             draw_wall._create_node();
-            // FIXME 这里不做处理的话 需要观察GPU和CPU的变化
-            this.scene.add(draw_wall.node);
+            floor.add_wall(draw_wall);
         };
         // 围墙组
         this.dom.addEventListener('click', this.wall_click_fun);
