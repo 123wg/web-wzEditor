@@ -161,6 +161,7 @@ class Wall {
         this.left_mesh = this._init_mesh(this.left_face);
         this.right_mesh = this._init_mesh(this.right_face);
         this.edge_mesh = this._init_mesh(this.edge_face);
+        this.node.name = 'Wall';
         this.node.add(this.left_mesh, this.right_mesh, this.edge_mesh);
     }
 }

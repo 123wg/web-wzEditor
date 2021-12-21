@@ -7,20 +7,13 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 // import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader';
-import { FBXLoader } from 'three/examples/jsm/loaders/FBXLoader';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass';
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass';
 import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass';
 import { FXAAShader } from 'three/examples/jsm/shaders/FXAAShader';
-import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry';
-import { FontLoader } from 'three/examples/jsm/loaders/FontLoader';
-import { CSG } from 'three-csg-ts'; // 交集并集计算
-import { VertexNormalsHelper } from 'three/examples/jsm/helpers/VertexNormalsHelper';
 import Stats from 'stats.js';
-import { BufferAttribute } from 'three';
 import bus from '@/common/EventBus';
-import Graph from './BFS';
 import Wall from '@/common/WzEditor/scene/Wall';
 
 export default class WzScene {
@@ -63,6 +56,8 @@ export default class WzScene {
         // 基础功能测试------end-----
 
         // 交互功能测试区 ----- start-------
+        // 测试射线拾取
+        this.test_pick_up();
         // 交互功能测试区 ----- end-------
 
         // ---------效果测试start----------
@@ -398,5 +393,43 @@ export default class WzScene {
         wall.end = end;
         wall._create_node();
         this.scene.add(wall.node);
+    }
+
+    // 测试射线拾取
+    test_pick_up() {
+        console.log(this.scene.children);
+        const rect = this.renderer.domElement.getBoundingClientRect();
+        // const get_wall = (obj) => {
+        // };
+        this.dom.addEventListener('mousemove', (m_evt) => {
+            const mouse = {};
+            mouse.x = ((m_evt.clientX - rect.left) / rect.width) * 2 - 1;
+            mouse.y = -((m_evt.clientY - rect.top) / rect.height) * 2 + 1;
+
+            const raycaster = new THREE.Raycaster();
+            raycaster.setFromCamera(mouse, this.camera);
+
+            const intersects = raycaster.intersectObjects(this.scene.children, true);
+
+            if (intersects.length > 0) {
+                const obj = intersects[0].object; // 判断
+                console.log(intersects[0]);
+                let sel_obj = null;
+                // FIXME 尝试更好的实现方式
+                if (obj.name === 'Wall') {
+                    sel_obj = obj;
+                } else {
+                    obj.traverseAncestors((parent) => {
+                        if (parent.name === 'Wall') sel_obj = parent;
+                    });
+                }
+                // 根据当前位置 绘制一个矩形跟随鼠标移动 且只在相交的面上显示
+                // 根据位置挖孔 摆放门窗模型 或者自己制作门窗模型
+                if (sel_obj) {
+                    console.log(sel_obj);
+                    // 初始化门窗的大小
+                }
+            }
+        });
     }
 }
