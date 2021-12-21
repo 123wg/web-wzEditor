@@ -427,7 +427,8 @@ export default class WzScene {
                 // 根据位置挖孔 摆放门窗模型 或者自己制作门窗模型
                 if (sel_obj) {
                     console.log(sel_obj);
-                    // 初始化门窗的大小
+                    // 获取交点 计算门窗大小和偏移
+                    // 墙体挖孔,绘制门窗(1.平面拉伸 2.创建体求交集)
                 }
             }
         });
