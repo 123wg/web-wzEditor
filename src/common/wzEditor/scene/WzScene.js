@@ -55,12 +55,15 @@ export default class WzScene {
 
         // 基础功能测试------end-----
 
-        // 交互功能测试区 ----- start-------
+        // 交互功能测试区 ----- start---
         // 测试射线拾取
-        this.test_pick_up();
-        // 交互功能测试区 ----- end-------
+        // this.test_pick_up();
+        // 测试拉伸生成几何体
+        this.test_tensile();
 
-        // ---------效果测试start----------
+        // 交互功能测试区 ----- end-----
+
+        // ---------效果测试start------
         // 毛玻璃材质使用
         // this.test_maoboli();
         // ---------效果测试end--------
@@ -198,6 +201,7 @@ export default class WzScene {
     add_gltf() {
         const loader = new GLTFLoader();
         loader.load('/static/model/matilda/scene.gltf', (gltf) => {
+            console.log(gltf);
             const model = gltf.scene;
             // console.log('加载的模型');
             // console.log(model);
@@ -399,8 +403,6 @@ export default class WzScene {
     test_pick_up() {
         console.log(this.scene.children);
         const rect = this.renderer.domElement.getBoundingClientRect();
-        // const get_wall = (obj) => {
-        // };
         this.dom.addEventListener('mousemove', (m_evt) => {
             const mouse = {};
             mouse.x = ((m_evt.clientX - rect.left) / rect.width) * 2 - 1;
@@ -412,10 +414,11 @@ export default class WzScene {
             const intersects = raycaster.intersectObjects(this.scene.children, true);
 
             if (intersects.length > 0) {
-                const obj = intersects[0].object; // 判断
-                console.log(intersects[0]);
+                const first = intersects[0];
+                const obj = first.object; // 判断
                 let sel_obj = null;
-                // FIXME 尝试更好的实现方式
+
+                // 查找墙体 这里需要思考，编辑器基类对象的设计
                 if (obj.name === 'Wall') {
                     sel_obj = obj;
                 } else {
@@ -423,14 +426,83 @@ export default class WzScene {
                         if (parent.name === 'Wall') sel_obj = parent;
                     });
                 }
-                // 根据当前位置 绘制一个矩形跟随鼠标移动 且只在相交的面上显示
-                // 根据位置挖孔 摆放门窗模型 或者自己制作门窗模型
+
                 if (sel_obj) {
-                    console.log(sel_obj);
-                    // 获取交点 计算门窗大小和偏移
-                    // 墙体挖孔,绘制门窗(1.平面拉伸 2.创建体求交集)
+                    // 测试拾取的点
+                    // this.create_point(first.point);
+                    // 测试拉伸门窗
+                    this.create_door(first.point);
                 }
             }
         });
+    }
+
+    // 测试鼠标拾取点坐标
+    create_point(points) {
+        const vertices = [...points];
+        const geometry = new THREE.BufferGeometry();
+        geometry.setFromPoints(vertices);
+        const material = new THREE.PointsMaterial({
+            color: 'red',
+            size: 2,
+        });
+        const mesh = new THREE.Points(geometry, material);
+        this.scene.add(mesh);
+    }
+
+    create_door(pos) {
+        pos.y = 0;
+        const start = new THREE.Vector3(-44.275354894211006, 0, -25.706564439374404);
+        const end = new THREE.Vector3(227.83783249779577, 0, -166.84207427248873);
+        const dir = new THREE.Vector3().subVectors(end, start);
+        dir.normalize();
+        dir.multiplyScalar(3);
+        const bottom_dir = new THREE.Vector3(0, -1, 0);
+        const normal_dir = new THREE.Vector3().crossVectors(dir, bottom_dir).normalize().multiplyScalar(30);
+        // const normal_dir = new THREE.Vector3(0, 0, 30);
+
+        const p1 = new THREE.Vector3().addVectors(pos, dir);
+        const p2 = new THREE.Vector3().subVectors(pos, dir);
+        const p3 = new THREE.Vector3().subVectors(p1, normal_dir);
+        const p4 = new THREE.Vector3().subVectors(p2, normal_dir);
+
+        const points = [p1, p2, p3, p4];
+        this.create_point(points);
+    }
+
+    // 测试拉伸几何体
+    test_tensile() {
+        const start = new THREE.Vector3(-44.275354894211006, 0, -25.706564439374404);
+        const end = new THREE.Vector3(227.83783249779577, 0, -166.84207427248873);
+        const dir = new THREE.Vector3().subVectors(end, start);
+        const x_dir = new THREE.Vector3(1, 0, 0);
+        const angle = dir.angleTo(x_dir);
+
+        const shape = new THREE.Shape();
+        shape.moveTo(0, 0);
+        shape.lineTo(30, 0);
+        shape.lineTo(30, 30);
+        shape.lineTo(0, 30);
+
+        const extrudeSetting = {
+            amount: 20,
+            bevelEnabled: false,
+        };
+
+        const extrude_geometry = new THREE.ExtrudeGeometry(shape, extrudeSetting);
+        extrude_geometry.rotateY(angle);
+        extrude_geometry.translate(0, 0, -55);
+
+        const material = new THREE.MeshLambertMaterial({
+            color: 'red',
+            size: 1, // 点对象像素尺
+            curveSegments: 5,
+        });
+        const mesh = new THREE.Mesh(extrude_geometry, material);
+        this.scene.add(mesh);
+
+        // 获取墙 mesh合并
+        const wall = this.scene.getObjectByName('Wall');
+        console.log(wall);
     }
 }
