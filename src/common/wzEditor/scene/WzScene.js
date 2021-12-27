@@ -501,8 +501,10 @@ export default class WzScene {
         const mesh = new THREE.Mesh(extrude_geometry, material);
         this.scene.add(mesh);
 
-        // 获取墙 mesh合并
+        // FIXME 获取墙 mesh合并
         const wall = this.scene.getObjectByName('Wall');
         console.log(wall);
+
+        //
     }
 }
