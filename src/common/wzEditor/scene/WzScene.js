@@ -13,6 +13,9 @@ import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass';
 import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass';
 import { FXAAShader } from 'three/examples/jsm/shaders/FXAAShader';
 import Stats from 'stats.js';
+// FIXME CSG 暂时只支持 Geometry生成的mesh 先测试一下enable3d 使用的布尔运算工具
+// import { CSG } from 'three-csg-ts';
+import { CSG } from '@enable3d/three-graphics/jsm/csg';
 import bus from '@/common/EventBus';
 import Wall from '@/common/WzEditor/scene/Wall';
 
@@ -171,14 +174,15 @@ export default class WzScene {
         // const point = new THREE.PointLight(0xffffff);
         // point.position.set(400, 200, 300); // 点光源位置
         // this.scene.add(point); // 点光源添加到场景中
+
         // 环境光
         const ambient = new THREE.AmbientLight(0xffffff);
         this.scene.add(ambient);
 
         // 平行光
-        // const light = new THREE.DirectionalLight(0xffffff, 0.5);
-        // light.position.set(200, 500, 300);
-        // this.scene.add(light);
+        const light = new THREE.DirectionalLight(0xffffff, 0.5);
+        light.position.set(200, 500, 300);
+        this.scene.add(light);
     }
 
     /**
@@ -472,39 +476,67 @@ export default class WzScene {
 
     // 测试拉伸几何体
     test_tensile() {
-        const start = new THREE.Vector3(-44.275354894211006, 0, -25.706564439374404);
-        const end = new THREE.Vector3(227.83783249779577, 0, -166.84207427248873);
-        const dir = new THREE.Vector3().subVectors(end, start);
-        const x_dir = new THREE.Vector3(1, 0, 0);
-        const angle = dir.angleTo(x_dir);
+        // const start = new THREE.Vector3(-44.275354894211006, 0, -25.706564439374404);
+        // const end = new THREE.Vector3(227.83783249779577, 0, -166.84207427248873);
+        // const dir = new THREE.Vector3().subVectors(end, start);
+        // const x_dir = new THREE.Vector3(1, 0, 0);
+        // const angle = dir.angleTo(x_dir);
 
-        const shape = new THREE.Shape();
-        shape.moveTo(0, 0);
-        shape.lineTo(30, 0);
-        shape.lineTo(30, 30);
-        shape.lineTo(0, 30);
+        // const shape = new THREE.Shape();
+        // shape.moveTo(0, 0);
+        // shape.lineTo(30, 0);
+        // shape.lineTo(30, 30);
+        // shape.lineTo(0, 30);
 
-        const extrudeSetting = {
-            amount: 20,
-            bevelEnabled: false,
-        };
+        // const extrudeSetting = {
+        //     amount: 20,
+        //     bevelEnabled: false,
+        // };
 
-        const extrude_geometry = new THREE.ExtrudeGeometry(shape, extrudeSetting);
-        extrude_geometry.rotateY(angle);
-        extrude_geometry.translate(0, 0, -55);
+        // const extrude_geometry = new THREE.ExtrudeGeometry(shape, extrudeSetting);
+        // extrude_geometry.rotateY(angle);
+        // extrude_geometry.translate(0, 0, -55);
 
-        const material = new THREE.MeshLambertMaterial({
-            color: 'red',
-            size: 1, // 点对象像素尺
-            curveSegments: 5,
+        // const material = new THREE.MeshLambertMaterial({
+        //     color: 'red',
+        //     size: 1, // 点对象像素尺
+        //     curveSegments: 5,
+        // });
+        // const mesh = new THREE.Mesh(extrude_geometry, material);
+        // this.scene.add(mesh);
+
+        // // FIXME 获取墙 mesh合并
+        // const wall = this.scene.getObjectByName('Wall');
+
+        // // 这里报错 type为Group 和 type 为mesh 的无法一起计算
+        // const meshC = CSG.intersect(wall.children[0], mesh);
+        // console.log(meshC);
+
+        // 测试csg 使用
+        const geometry1 = new THREE.BoxGeometry(30, 30, 30);
+        const geometry2 = new THREE.BoxGeometry(10, 10, 10);
+        geometry2.translate(0, 15, 0);
+        const material1 = new THREE.MeshPhongMaterial({
+            color: '#3399ff',
+            // wireframe: true,
         });
-        const mesh = new THREE.Mesh(extrude_geometry, material);
-        this.scene.add(mesh);
+        const material2 = new THREE.MeshPhongMaterial({
+            color: '#3399ff',
+        });
+        const box1 = new THREE.Mesh(geometry1, material1);
+        const box2 = new THREE.Mesh(geometry2, material2);
+        // this.scene.add(box1);
+        // this.scene.add(box2);
 
-        // FIXME 获取墙 mesh合并
-        const wall = this.scene.getObjectByName('Wall');
-        console.log(wall);
+        box1.updateMatrix();
+        box2.updateMatrix();
 
-        //
+        const new_mesh = CSG.subtract(box1, box2);
+        console.log(new_mesh);
+        new_mesh.material = material1;
+        this.scene.add(new_mesh);
+
+        // const new_mesh = CSG.intersect(box1, box2);
+        // this.scene.add(new_mesh);
     }
 }

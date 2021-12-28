@@ -208,6 +208,37 @@
     "@babel/helper-validator-identifier" "^7.14.9"
     to-fast-properties "^2.0.0"
 
+"@enable3d/ammo-physics@^0.22.0-dev.1":
+  version "0.22.0"
+  resolved "https://registry.npmmirror.com/@enable3d/ammo-physics/download/@enable3d/ammo-physics-0.22.0.tgz#334cbbe854cd60904123fa79acbaf977ae58466f"
+  integrity sha1-M0y76FTNYJBBI/p5rLr5d65YRm8=
+  dependencies:
+    "@enable3d/common" "^0.22.0"
+    "@enable3d/three-wrapper" "^0.22.0"
+    "@yandeu/events" "0.0.5"
+
+"@enable3d/common@^0.22.0", "@enable3d/common@^0.22.0-dev.1":
+  version "0.22.0"
+  resolved "https://registry.npmmirror.com/@enable3d/common/download/@enable3d/common-0.22.0.tgz#d51e23b4d9e94a5418b6fb87fd1ca7a760deb788"
+  integrity sha1-1R4jtNnpSlQYtvuH/Rynp2Det4g=
+  dependencies:
+    "@enable3d/three-wrapper" "^0.22.0"
+    "@yandeu/events" "0.0.5"
+
+"@enable3d/three-graphics@0.22.0-dev.1":
+  version "0.22.0-dev.1"
+  resolved "https://registry.npmmirror.com/@enable3d/three-graphics/download/@enable3d/three-graphics-0.22.0-dev.1.tgz#6db33e7807d711c550114b5c012e68506ad4bd9d"
+  integrity sha1-bbM+eAfXEcVQEUtcAS5oUGrUvZ0=
+  dependencies:
+    "@enable3d/ammo-physics" "^0.22.0-dev.1"
+    "@enable3d/common" "^0.22.0-dev.1"
+    "@enable3d/three-wrapper" "^0.22.0-dev.1"
+
+"@enable3d/three-wrapper@^0.22.0", "@enable3d/three-wrapper@^0.22.0-dev.1":
+  version "0.22.0"
+  resolved "https://registry.npmmirror.com/@enable3d/three-wrapper/download/@enable3d/three-wrapper-0.22.0.tgz#51c73f2e9f152008cad38458a0a3af953611675d"
+  integrity sha1-Ucc/Lp8VIAjK04RYoKOvlTYRZ10=
+
 "@eslint/eslintrc@^0.4.3":
   version "0.4.3"
   resolved "https://registry.yarnpkg.com/@eslint/eslintrc/-/eslintrc-0.4.3.tgz#9e42981ef035beb3dd49add17acb96e8ff6f394c"
@@ -430,6 +461,11 @@
   integrity sha512-teW0TUQryGnEprHeOI6oH8NPVJBirknxksEiNCtdEjIi8W7JSTg8JPO+e1XlGI6ly24NDlDXUDYaHJayiaXjuw==
   dependencies:
     vue-demi "*"
+
+"@yandeu/events@0.0.5":
+  version "0.0.5"
+  resolved "https://registry.npmmirror.com/@yandeu/events/download/@yandeu/events-0.0.5.tgz#f8fb41cf4222186eca6a0a5d36f5393805484f19"
+  integrity sha1-+PtBz0IiGG7KagpdNvU5OAVITxk=
 
 acorn-jsx@^5.2.0, acorn-jsx@^5.3.1:
   version "5.3.2"
