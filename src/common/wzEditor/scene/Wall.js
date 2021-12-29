@@ -67,6 +67,7 @@ class Wall {
         vertices.map((item) => item.toArray());
 
         const normals = [up_dir, down_dir, line_dir2, line_dir1, normal_dir1, normal_dir2]; // 上下左右前后
+
         normals.map((item) => item.toArray());
 
         const vertices_1 = [ // right
