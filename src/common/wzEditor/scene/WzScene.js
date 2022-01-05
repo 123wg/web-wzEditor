@@ -412,25 +412,50 @@ export default class WzScene {
             const intersects = raycaster.intersectObjects(this.scene.children, true);
 
             if (intersects.length > 0) {
-                const obj = intersects[0].object; // 判断
-                console.log(intersects[0]);
+                const obj = intersects[0]; // 判断
                 let sel_obj = null;
                 // FIXME 尝试更好的实现方式
-                if (obj.name === 'Wall') {
-                    sel_obj = obj;
+                if (obj.object.name === 'Wall') {
+                    sel_obj = obj.object;
                 } else {
-                    obj.traverseAncestors((parent) => {
+                    obj.object.traverseAncestors((parent) => {
                         if (parent.name === 'Wall') sel_obj = parent;
                     });
                 }
                 // 根据当前位置 绘制一个矩形跟随鼠标移动 且只在相交的面上显示
                 // 根据位置挖孔 摆放门窗模型 或者自己制作门窗模型
                 if (sel_obj) {
-                    console.log(sel_obj);
+                    // console.log(sel_obj);
+                    console.log(obj.point);
+                    this.create_door(obj.point);
                     // 获取交点 计算门窗大小和偏移
                     // 墙体挖孔,绘制门窗(1.平面拉伸 2.创建体求交集)
                 }
             }
         });
+    }
+
+    // 根据点创建平面 --测试拉伸生成几何体
+    create_door(point) {
+        const start = new THREE.Vector3(-44.275354894211006, 0, -25.706564439374404);
+        const end = new THREE.Vector3(227.83783249779577, 0, -166.84207427248873);
+        // 计算方向向量
+        const dir = end.clone().sub(start.clone());
+        dir.normalize();
+        dir.multiplyScalar(4);
+        const p_e = point.clone().add(dir);
+        const p_s = point.clone().sub(dir);
+        const p_e1 = p_e.clone().add(new THREE.Vector3(0, 30, 0));
+        const p_s1 = p_s.clone().add(new THREE.Vector3(0, 30, 0));
+        const points = [p_e, p_e1, p_s1, p_s];
+        points.map((item) => new THREE.Vector2(item.x, item.z));
+        const shape = new THREE.Shape(points);
+        const geometry = new THREE.ShapeGeometry(shape);
+        const material = new THREE.MeshLambertMaterial({
+            color: 'red',
+        });
+        const mesh = new THREE.Mesh(geometry, material);
+        mesh.rotateZ(Math.PI / 2);
+        this.scene.add(mesh);
     }
 }
