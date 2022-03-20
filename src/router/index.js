@@ -18,7 +18,7 @@ import { createRouter, createWebHistory } from 'vue-router';
 
 const routes = [
     {
-        path: '/',
+        path: '/editor',
         component: () => import('@/views/Editor.vue'),
     },
     {
@@ -27,6 +27,10 @@ const routes = [
     },
     // FIXME 暂时注释
     // ...constantRouterComponents,
+    {
+        path: '/',
+        component: () => import('@/views/Three.vue'),
+    },
 ];
 
 const router = createRouter({
