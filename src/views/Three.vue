@@ -2,9 +2,9 @@
     <div class='yt-three' id="yt-three"></div>
 </template>
 
-<script>
-import Cad from '@/study/figure/test';
-
+<script lang="ts">
+import Cad from '@/study/test/testDrag';
+import { defineComponent, reactive } from 'vue';
 export default {
     components: {},
     data() {
@@ -21,8 +21,8 @@ export default {
     unmounted() {},
     methods: {
         init() {
-            const yt = new Cad();
-            console.log(yt);
+            (window as any).yt = new Cad();
+            console.log((window as any).yt);
         },
     },
 };
