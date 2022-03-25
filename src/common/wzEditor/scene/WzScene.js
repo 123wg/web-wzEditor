@@ -13,6 +13,10 @@ import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass';
 import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass';
 import { FXAAShader } from 'three/examples/jsm/shaders/FXAAShader';
 import Stats from 'stats.js';
+// FIXME CSG 暂时只支持 Geometry生成的mesh 先测试一下enable3d 使用的布尔运算工具
+// import { CSG } from 'three-csg-ts';
+// 测试证明 Geometry 使用情况良好 未测试bufferGeometry 情况
+import { CSG } from '@enable3d/three-graphics/jsm/csg';
 import bus from '@/common/EventBus';
 import Wall from '@/common/WzEditor/scene/Wall';
 
@@ -55,12 +59,17 @@ export default class WzScene {
 
         // 基础功能测试------end-----
 
-        // 交互功能测试区 ----- start-------
+        // 交互功能测试区 ----- start---
         // 测试射线拾取
-        this.test_pick_up();
-        // 交互功能测试区 ----- end-------
+        // this.test_pick_up();
+        // 测试拉伸生成几何体
+        // this.test_tensile();
+        // 测试几何体合并
+        this.enable3d_csg();
 
-        // ---------效果测试start----------
+        // 交互功能测试区 ----- end-----
+
+        // ---------效果测试start------
         // 毛玻璃材质使用
         // this.test_maoboli();
         // ---------效果测试end--------
@@ -168,14 +177,15 @@ export default class WzScene {
         // const point = new THREE.PointLight(0xffffff);
         // point.position.set(400, 200, 300); // 点光源位置
         // this.scene.add(point); // 点光源添加到场景中
+
         // 环境光
         const ambient = new THREE.AmbientLight(0xffffff);
         this.scene.add(ambient);
 
         // 平行光
-        // const light = new THREE.DirectionalLight(0xffffff, 0.5);
-        // light.position.set(200, 500, 300);
-        // this.scene.add(light);
+        const light = new THREE.DirectionalLight(0xffffff, 0.5);
+        light.position.set(200, 500, 300);
+        this.scene.add(light);
     }
 
     /**
@@ -198,6 +208,7 @@ export default class WzScene {
     add_gltf() {
         const loader = new GLTFLoader();
         loader.load('/static/model/matilda/scene.gltf', (gltf) => {
+            console.log(gltf);
             const model = gltf.scene;
             // console.log('加载的模型');
             // console.log(model);
@@ -399,8 +410,6 @@ export default class WzScene {
     test_pick_up() {
         console.log(this.scene.children);
         const rect = this.renderer.domElement.getBoundingClientRect();
-        // const get_wall = (obj) => {
-        // };
         this.dom.addEventListener('mousemove', (m_evt) => {
             const mouse = {};
             mouse.x = ((m_evt.clientX - rect.left) / rect.width) * 2 - 1;
@@ -412,50 +421,126 @@ export default class WzScene {
             const intersects = raycaster.intersectObjects(this.scene.children, true);
 
             if (intersects.length > 0) {
-                const obj = intersects[0]; // 判断
+                const first = intersects[0];
+                const obj = first.object; // 判断
                 let sel_obj = null;
-                // FIXME 尝试更好的实现方式
-                if (obj.object.name === 'Wall') {
-                    sel_obj = obj.object;
+
+                // 查找墙体 这里需要思考，编辑器基类对象的设计
+                if (obj.name === 'Wall') {
+                    sel_obj = obj;
                 } else {
                     obj.object.traverseAncestors((parent) => {
                         if (parent.name === 'Wall') sel_obj = parent;
                     });
                 }
-                // 根据当前位置 绘制一个矩形跟随鼠标移动 且只在相交的面上显示
-                // 根据位置挖孔 摆放门窗模型 或者自己制作门窗模型
+
                 if (sel_obj) {
-                    // console.log(sel_obj);
-                    console.log(obj.point);
-                    this.create_door(obj.point);
-                    // 获取交点 计算门窗大小和偏移
-                    // 墙体挖孔,绘制门窗(1.平面拉伸 2.创建体求交集)
+                    // this.create_point(first.point);
+                    // 测试拉伸门窗
+                    this.create_door(first.point);
                 }
             }
-        });
+         })
     }
 
-    // 根据点创建平面 --测试拉伸生成几何体
-    create_door(point) {
+
+    // 测试鼠标拾取点坐标
+    create_point(points) {
+        const geometry = new THREE.BufferGeometry();
+        geometry.setFromPoints(vertices);
+        const material = new THREE.PointsMaterial({
+            color: 'red',
+            size: 2,
+        });
+        const mesh = new THREE.Points(geometry, material);
+        this.scene.add(mesh);
+    }
+
+    create_door(pos) {
+        pos.y = 0;
         const start = new THREE.Vector3(-44.275354894211006, 0, -25.706564439374404);
         const end = new THREE.Vector3(227.83783249779577, 0, -166.84207427248873);
-        // 计算方向向量
-        const dir = end.clone().sub(start.clone());
+        const dir = new THREE.Vector3().subVectors(end, start);
         dir.normalize();
-        dir.multiplyScalar(4);
-        const p_e = point.clone().add(dir);
-        const p_s = point.clone().sub(dir);
-        const p_e1 = p_e.clone().add(new THREE.Vector3(0, 30, 0));
-        const p_s1 = p_s.clone().add(new THREE.Vector3(0, 30, 0));
-        const points = [p_e, p_e1, p_s1, p_s];
-        points.map((item) => new THREE.Vector2(item.x, item.z));
-        const shape = new THREE.Shape(points);
-        const geometry = new THREE.ShapeGeometry(shape);
+        dir.multiplyScalar(3);
+        const bottom_dir = new THREE.Vector3(0, -1, 0);
+        const normal_dir = new THREE.Vector3().crossVectors(dir, bottom_dir).normalize().multiplyScalar(30);
+        // const normal_dir = new THREE.Vector3(0, 0, 30);
+
+        const p1 = new THREE.Vector3().addVectors(pos, dir);
+        const p2 = new THREE.Vector3().subVectors(pos, dir);
+        const p3 = new THREE.Vector3().subVectors(p1, normal_dir);
+        const p4 = new THREE.Vector3().subVectors(p2, normal_dir);
+
+        const points = [p1, p2, p3, p4];
+        this.create_point(points);
+    }
+
+    // 测试拉伸几何体
+    test_tensile() {
+        const start = new THREE.Vector3(-44.275354894211006, 0, -25.706564439374404);
+        const end = new THREE.Vector3(227.83783249779577, 0, -166.84207427248873);
+        const dir = new THREE.Vector3().subVectors(end, start);
+        const x_dir = new THREE.Vector3(1, 0, 0);
+        const angle = dir.angleTo(x_dir);
+
+        const shape = new THREE.Shape();
+        shape.moveTo(0, 0);
+        shape.lineTo(30, 0);
+        shape.lineTo(30, 30);
+        shape.lineTo(0, 30);
+
+        const extrudeSetting = {
+            amount: 20,
+            bevelEnabled: false,
+        };
+
+        const extrude_geometry = new THREE.ExtrudeGeometry(shape, extrudeSetting);
+        extrude_geometry.rotateY(angle);
+        extrude_geometry.translate(0, 0, -55);
+
         const material = new THREE.MeshLambertMaterial({
             color: 'red',
+            size: 1, // 点对象像素尺
+            curveSegments: 5,
         });
-        const mesh = new THREE.Mesh(geometry, material);
-        mesh.rotateZ(Math.PI / 2);
+        const mesh = new THREE.Mesh(extrude_geometry, material);
         this.scene.add(mesh);
+
+        // FIXME 获取墙 mesh合并
+        // const wall = this.scene.getObjectByName('Wall');
+
+        // 这里报错 type为Group 和 type 为mesh 的无法一起计算
+        // const meshC = CSG.intersect(wall.children[0], mesh);
+        // console.log(meshC);
+    }
+
+    enable3d_csg() {
+        // 第一种情况 两个 Geometry
+        const geometry1 = new THREE.BoxGeometry(30, 30, 30);
+        const geometry2 = new THREE.BoxGeometry(10, 10, 10);
+        geometry2.translate(0, 15, 0);
+        const material1 = new THREE.MeshPhongMaterial({
+            color: '#3399ff',
+            wireframe: true,
+        });
+        const material2 = new THREE.MeshPhongMaterial({
+            color: '#3399ff',
+        });
+        const box1 = new THREE.Mesh(geometry1, material1);
+        const box2 = new THREE.Mesh(geometry2, material2);
+
+        box1.updateMatrix();
+        box2.updateMatrix();
+
+        const new_mesh = CSG.subtract(box1, box2);
+        console.log(new_mesh);
+        new_mesh.material = material1;
+        this.scene.add(new_mesh);
+
+        // 第二种情况 两个bufferGeometry
+        // const geometry = new THREE.BufferGeometry();
+        // const position = new Float32Array([
+        // ]);
     }
 }

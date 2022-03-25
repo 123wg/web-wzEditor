@@ -439,6 +439,11 @@
   dependencies:
     vue-demi "*"
 
+"@yandeu/events@0.0.5":
+  version "0.0.5"
+  resolved "https://registry.npmmirror.com/@yandeu/events/download/@yandeu/events-0.0.5.tgz#f8fb41cf4222186eca6a0a5d36f5393805484f19"
+  integrity sha1-+PtBz0IiGG7KagpdNvU5OAVITxk=
+
 acorn-jsx@^5.2.0, acorn-jsx@^5.3.1:
   version "5.3.2"
   resolved "https://registry.yarnpkg.com/acorn-jsx/-/acorn-jsx-5.3.2.tgz#7ed5bb55908b3b2f1bc55c6af1653bada7f07937"

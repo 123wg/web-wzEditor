@@ -4,14 +4,7 @@
 
 <script lang="ts">
 import Cad from '@/study/test/testDrag';
-import { defineComponent, reactive } from 'vue';
 export default {
-    components: {},
-    data() {
-        return {
-
-        };
-    },
     computed: {},
     watch: {},
     created() {},
