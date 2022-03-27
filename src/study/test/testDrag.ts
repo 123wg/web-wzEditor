@@ -1,9 +1,10 @@
-import { DragControlNew } from './../util/DragControlsNew';
-import { Vector3 } from 'three';
+// import { Vector3 } from 'three';
 import * as THREE from 'three';
-import BaseCad from '../ThreeBase';
-import ManipulatorArrowControl from '../figure/ManipulatorArrowControl';
 import { DragControls } from '@/study/util/DragControl';
+// import { DragControls } from 'three/examples/jsm/controls/DragControls';
+// import DragControlNew from '@/study/util/DragControlsNew';
+import BaseCad from '../ThreeBase';
+// import ManipulatorArrowControl from '../figure/ManipulatorArrowControl';
 // 拖放控制器
 export default class Cad extends BaseCad {
     constructor() {
@@ -35,7 +36,7 @@ export default class Cad extends BaseCad {
         this.scene.add(mesh);
         mesh.scale.set(2, 1, 1);
 
-        let box = new THREE.BoxHelper(mesh, 0xffff00);
+        const box = new THREE.BoxHelper(mesh, 0xffff00);
         this.scene.add(box);
 
         // const geometry1 = new THREE.BoxBufferGeometry(2, 2, 2);
@@ -73,36 +74,34 @@ export default class Cad extends BaseCad {
 
         // let box = new THREE.BoxHelper(arrow, 0xffff00);
         // this.scene.add(box);
-        const group = new THREE.Group()
-        group.position.set(5,3,1)
+        // const group = new THREE.Group();
+        // group.position.set(5, 3, 1);
 
-        const box = new THREE.BoxBufferGeometry(5,5,5)
-        const material = new THREE.MeshBasicMaterial({color:'green'})
-        const mesh = new THREE.Mesh(box,material)
-        mesh.position.set(1,0,0)
+        const box = new THREE.BoxBufferGeometry(5, 5, 5);
+        const material = new THREE.MeshBasicMaterial({ color: 'green' });
+        const mesh = new THREE.Mesh(box, material);
+        mesh.position.set(1, 0, 0);
+        this.scene.add(mesh);
         // this.scene.add(mesh)
 
-        group.add(mesh)
-        this.scene.add(group)
+        // group.add(mesh);
+        // this.scene.add(group);
 
         // 添加拖拽控制器
-        const controls = new DragControlNew([mesh],this.camera,this.dom)
-        controls.addEventListener( 'dragstart', function ( event ) {
 
+        const controls = new DragControls([mesh], this.camera, this.dom);
+        controls.addEventListener('dragstart', (event) => {
             console.log(event.object);
             // event.object.material.emissive.set( 0xaaaaaa );
+        });
 
-        } );
+        // controls.addEventListener('drag', () => {
+        //     console.log('拖拽中');
+        // });
 
-        controls.addEventListener('drag',event=>{
-            console.log('拖拽中');
-        })
-
-        controls.addEventListener( 'dragend', function ( event ) {
-
-            console.log(event.object);
-
-        } );
+        // controls.addEventListener('dragend', (event) => {
+        //     console.log(event.object);
+        // });
     }
 
     test_cylinder() {
@@ -113,7 +112,7 @@ export default class Cad extends BaseCad {
         });
         const mesh = new THREE.Mesh(cylinderGeom, material);
 
-        mesh.scale.set(1,2,1)
+        mesh.scale.set(1, 2, 1);
         this.scene.add(mesh);
 
         // let sphere = new THREE.SphereGeometry(0.5);

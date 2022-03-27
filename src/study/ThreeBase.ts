@@ -30,7 +30,7 @@ export default class BaseCad {
         const { width, height } = this.size;
         this.camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
         this.camera.position.set(-30, 40, 30);
-        this.camera.lookAt(0,0,0)
+        this.camera.lookAt(0, 0, 0);
     }
 
     init_light() {
@@ -52,10 +52,10 @@ export default class BaseCad {
         this.controls.enableDamping = true; // 开启惯性
         this.controls.dampingFactor = 0.8;
         this.controls.mouseButtons = {
-            LEFT:5555,
-            MIDDLE:  THREE.MOUSE.ROTATE,
-            RIGHT: THREE.MOUSE.PAN
-        }
+            LEFT: 5555,
+            MIDDLE: THREE.MOUSE.ROTATE,
+            RIGHT: THREE.MOUSE.PAN,
+        };
     }
 
     init_render() {

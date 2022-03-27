@@ -14,15 +14,13 @@
         "lib": ["WebWorker", "DOM", "ES6"],
         "baseUrl": ".",
         "paths": {
-            "@/*": ["./src/*"],
-            "yt-sscs": ["./libs/yt-sscs/yt-sscs"]
+            "@/*": ["src/*"],
         },
         "removeComments": true,
     },
     "include": [
         "src/**/*",
         "@types/**/*",
-        "node_modules/vue-tsx-support/enable-check.d.ts",
     ],
     "exclude": [
         "node_modules"

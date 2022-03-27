@@ -16,7 +16,7 @@ import Stats from 'stats.js';
 // FIXME CSG 暂时只支持 Geometry生成的mesh 先测试一下enable3d 使用的布尔运算工具
 // import { CSG } from 'three-csg-ts';
 // 测试证明 Geometry 使用情况良好 未测试bufferGeometry 情况
-import { CSG } from '@enable3d/three-graphics/jsm/csg';
+// import { CSG } from '@enable3d/three-graphics/jsm/csg';
 import bus from '@/common/EventBus';
 import Wall from '@/common/WzEditor/scene/Wall';
 
@@ -65,7 +65,7 @@ export default class WzScene {
         // 测试拉伸生成几何体
         // this.test_tensile();
         // 测试几何体合并
-        this.enable3d_csg();
+        // this.enable3d_csg();
 
         // 交互功能测试区 ----- end-----
 
@@ -440,9 +440,8 @@ export default class WzScene {
                     this.create_door(first.point);
                 }
             }
-         })
+        });
     }
-
 
     // 测试鼠标拾取点坐标
     create_point(points) {
@@ -515,32 +514,32 @@ export default class WzScene {
         // console.log(meshC);
     }
 
-    enable3d_csg() {
-        // 第一种情况 两个 Geometry
-        const geometry1 = new THREE.BoxGeometry(30, 30, 30);
-        const geometry2 = new THREE.BoxGeometry(10, 10, 10);
-        geometry2.translate(0, 15, 0);
-        const material1 = new THREE.MeshPhongMaterial({
-            color: '#3399ff',
-            wireframe: true,
-        });
-        const material2 = new THREE.MeshPhongMaterial({
-            color: '#3399ff',
-        });
-        const box1 = new THREE.Mesh(geometry1, material1);
-        const box2 = new THREE.Mesh(geometry2, material2);
+    // enable3d_csg() {
+    //     // 第一种情况 两个 Geometry
+    //     const geometry1 = new THREE.BoxGeometry(30, 30, 30);
+    //     const geometry2 = new THREE.BoxGeometry(10, 10, 10);
+    //     geometry2.translate(0, 15, 0);
+    //     const material1 = new THREE.MeshPhongMaterial({
+    //         color: '#3399ff',
+    //         wireframe: true,
+    //     });
+    //     const material2 = new THREE.MeshPhongMaterial({
+    //         color: '#3399ff',
+    //     });
+    //     const box1 = new THREE.Mesh(geometry1, material1);
+    //     const box2 = new THREE.Mesh(geometry2, material2);
 
-        box1.updateMatrix();
-        box2.updateMatrix();
+    //     box1.updateMatrix();
+    //     box2.updateMatrix();
 
-        const new_mesh = CSG.subtract(box1, box2);
-        console.log(new_mesh);
-        new_mesh.material = material1;
-        this.scene.add(new_mesh);
+    //     const new_mesh = CSG.subtract(box1, box2);
+    //     console.log(new_mesh);
+    //     new_mesh.material = material1;
+    //     this.scene.add(new_mesh);
 
-        // 第二种情况 两个bufferGeometry
-        // const geometry = new THREE.BufferGeometry();
-        // const position = new Float32Array([
-        // ]);
-    }
+    //     // 第二种情况 两个bufferGeometry
+    //     // const geometry = new THREE.BufferGeometry();
+    //     // const position = new Float32Array([
+    //     // ]);
+    // }
 }

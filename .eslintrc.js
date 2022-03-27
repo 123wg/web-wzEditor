@@ -1,79 +1,124 @@
 module.exports = {
-    env: {
-        browser: true,
-        es2021: true,
-        node: true,
+    root: true,
+    globals: {
+        // defineEmits: 'readonly',
+        // defineProps: 'readonly',
+        window: false,
     },
     extends: [
-        // TODO 插件暂时注释 好像没有什么卵用
-        // 'plugin:vue/essential', // 现在不满足需求了
-        // 'plugin:vue/vue3-recommended',
-        // 'eslint:recommended',
-        'airbnb-base',
         'plugin:@typescript-eslint/recommended',
-        'plugin:vue/vue3-essential',
+        'plugin:vue/vue3-recommended',
+        'airbnb-base',
+    ],
+    parser: 'vue-eslint-parser',
+    plugins: [
+        '@typescript-eslint',
     ],
     parserOptions: {
         parser: '@typescript-eslint/parser',
-        ecmaVersion: 12,
-        sourceType: 'module',
+        ecmaVersion: 2020,
     },
-    plugins: [
-        'vue',
-    ],
     rules: {
-        'no-var': 'error',
-        'vue/html-indent': ['error', 4],
-        indent: ['error', 4],
-        'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off', // 生产环境关闭console
-        'import/no-extraneous-dependencies': ['error', { devDependencies: true }], // 解决vite配置报错
-        'import/no-unresolved': 'off', // https://blog.csdn.net/qq_42917144/article/details/117021528
-        'vue/html-self-closing': 'off',
-        'vue/comment-directive': 'off', // 解决html中eslint-disable的注释
-        'no-param-reassign': ['error', { props: false }], // 修改函数参数
-        'max-len': ['error', { code: 500 }],
+        // 'no-debugger': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
+        // 'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
+        // 'no-bitwise': 'off',
+        // 'no-tabs': 'off',
+        // 'array-element-newline': ['error', 'consistent'],
+        indent: ['error', 4, { MemberExpression: 0, SwitchCase: 1, ignoredNodes: ['TemplateLiteral'] }],
+        // quotes: ['error', 'single'],
+        // 'comma-dangle': ['error', 'always-multiline'],
+        // 'object-curly-spacing': ['error', 'always'],
+        'max-len': ['error', 1000],
+        // 'no-new': 'off',
+        // 'linebreak-style': 'off',
+        'import/extensions': 'off',
+        // 'eol-last': 'off',
+        // 'no-shadow': 'off',
+        // 'no-unused-vars': 'warn',
+        // 'import/no-cycle': 'off',
+        // 'arrow-parens': 'off',
+        // semi: ['error', 'never'],
+        // eqeqeq: 'off',
+        'no-param-reassign': 'off',
         camelcase: 'off',
-        'class-methods-use-this': 'off',
-        'no-debugger': 'off',
-        'consistent-return': 0,
-        'no-underscore-dangle': 0,
-        '@typescript-eslint/no-explicit-any': 0, // .ts 允许使用any
-        '@typescript-eslint/ban-types': 0, // .ts 允许使用 Function 作用类型
-        '@typescript-eslint/explicit-module-boundary-types': 0, // .ts 允许函数不写返回值类型
-        '@typescript-eslint/no-this-alias': 0, // .ts 允许使用 this 别名
-        '@typescript-eslint/no-extra-semi': 0, // .ts 允许额外分号
-        'prefer-const': 0, // prefer-const 看官方文档
-        'no-constant-condition': 0,
-        '@typescript-eslint/no-empty-interface': 0,
-        '@typescript-eslint/no-empty-function': 0,
-        'import/extensions': [
-            'error',
-            'ignorePackages',
-            {
-                js: 'never',
-                jsx: 'never',
-                ts: 'never',
-                tsx: 'never',
-            },
-        ],
+        'import/prefer-default-export': 'off',
+        'no-use-before-define': 'off',
+        // 'no-continue': 'off',
+        'prefer-destructuring': 'off',
+        // 'no-plusplus': 'off',
+        // 'prefer-const': 'off',
+        // 'global-require': 'off',
+        // 'no-prototype-builtins': 'off',
+        'consistent-return': 'off',
+        // 'vue/require-component-is': 'off',
+        // 'prefer-template': 'off',
+        // 'one-var-declaration-per-line': 'off',
+        // 'one-var': 'off',
+        // 'import/named': 'off',
+        // 'object-curly-newline': 'off',
+        // 'default-case': 'off',
+        // 'import/order': 'off',
+        // 'no-trailing-spaces': 'off',
+        // 'func-names': 'off',
+        // radix: 'off',
+        // 'no-unused-expressions': 'off',
+        'no-underscore-dangle': 'off',
+        // 'no-nested-ternary': 'off',
+        // 'no-restricted-syntax': 'off',
+        // 'no-mixed-operators': 'off',
+        // 'no-await-in-loop': 'off',
+        // 'import/no-extraneous-dependencies': 'off',
+        'import/no-unresolved': 'off',
+        // 'no-case-declarations': 'off',
+        // 'template-curly-spacing': 'off',
+        // 'vue/valid-v-for': 'off',
+        // '@typescript-eslint/no-var-requires': 'off',
+        '@typescript-eslint/no-empty-function': 'off',
+        '@typescript-eslint/no-this-alias': 'off',
+        'no-empty': 'off',
+        // '@typescript-eslint/no-explicit-any': 'off',
+        // 'guard-for-in': 'off',
+        // '@typescript-eslint/ban-types': 'off',
+        // 'class-methods-use-this': 'off',
+        // 'no-return-await': 'off',
+        'vue/html-indent': ['error', 4],
+        'vue/html-self-closing': 'off',
+        // 'import/extensions': [
+        //     'error',
+        //     'ignorePackages',
+        //     {
+        //         js: 'never',
+        //         jsx: 'never',
+        //         ts: 'never',
+        //         tsx: 'never',
+        //         vue: 'never',
+        //     },
+        // ],
+        // 'vue/max-attributes-per-line': ['warn', {
+        //     singleline: {
+        //         max: 3,
+        //         allowFirstLine: true,
+        //     },
+        //     multiline: {
+        //         max: 1,
+        //         allowFirstLine: false,
+        //     },
+        // }],
+        'vue/singleline-html-element-content-newline': 'off',
     },
-    globals: {
-        wzEditor: true,
-        turf: true,
-    },
-    settings: {
-        'import/extensions': ['.js', '.jsx', '.ts', '.tsx'],
-        'import/resolver': {
-            node: {
-                extensions: ['.js', '.jsx', '.ts', '.tsx'], // 配置文件扩展名
-            },
-            // 配置alias
-            alias: {
-                map: [
-                    ['@', './src'],
-                ],
-                extensions: ['.js', '.jsx', '.ts', '.tsx'],
-            },
-        },
-    },
+    // settings: {
+    //     'import/extensions': ['.js', '.jsx', '.ts', '.tsx'],
+    //     'import/resolver': {
+    //         node: {
+    //             extensions: ['.js', '.jsx', '.ts', '.tsx'], // 配置文件扩展名
+    //         },
+    //         // 配置alias
+    //         alias: {
+    //             map: [
+    //                 ['@', './src'],
+    //             ],
+    //             extensions: ['.js', '.jsx', '.ts', '.tsx'],
+    //         },
+    //     },
+    // },
 };

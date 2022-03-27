@@ -4,8 +4,6 @@
 * @Date: 2021-11-09 09:07:05
 * */
 import * as THREE from 'three';
-import { FontLoader } from 'three/examples/jsm/loaders/FontLoader';
-import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry';
 
 class BuildSign {
     constructor(scene) {
@@ -25,9 +23,9 @@ class BuildSign {
         });
         const box = new THREE.Mesh(geometry, material);
         // 创建文字
-        const loader = new FontLoader();
+        const loader = new THREE.FontLoader();
         loader.load('/static/font/KaiTi_Regular.json', (font) => {
-            const facade_text = new TextGeometry('建筑', {
+            const facade_text = new THREE.TextGeometry('建筑', {
                 font,
                 size: 10,
                 height: 0.1,

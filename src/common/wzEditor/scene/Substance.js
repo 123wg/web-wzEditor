@@ -22,22 +22,22 @@ class Substance {
             const file_type = this._model_url.substring(this._model_url.lastIndexOf('.') + 1);
             let loader = null;
             switch (file_type) {
-            case 'gltf':
-                loader = new GLTFLoader();
-                loader.load(this._model_url, (gltf) => {
-                    this._node = gltf.scene;
-                    console.log(this._node);
-                    resolve();
-                });
-                break;
-            case 'fbx':
-                loader = new FBXLoader();
-                loader.load(this._model_url, (gltf) => {
-                    this._node = gltf;
-                    resolve();
-                });
-                break;
-            default: break;
+                case 'gltf':
+                    loader = new GLTFLoader();
+                    loader.load(this._model_url, (gltf) => {
+                        this._node = gltf.scene;
+                        console.log(this._node);
+                        resolve();
+                    });
+                    break;
+                case 'fbx':
+                    loader = new FBXLoader();
+                    loader.load(this._model_url, (gltf) => {
+                        this._node = gltf;
+                        resolve();
+                    });
+                    break;
+                default: break;
             }
         });
     }

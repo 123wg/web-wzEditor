@@ -1,266 +1,152 @@
 import {
-	EventDispatcher,
-	Matrix4,
-	Plane,
-	Raycaster,
-	Vector2,
-	Vector3
-} from "three";
+    EventDispatcher,
+    Matrix4,
+    Plane,
+    Raycaster,
+    Vector2,
+    Vector3,
+} from 'three';
 
-var DragControls = function ( _objects, _camera, _domElement ) {
+const DragControls = function (_objects, _camera, _domElement) {
+    const _plane = new Plane();
+    const _raycaster = new Raycaster();
 
-	var _plane = new Plane();
-	var _raycaster = new Raycaster();
+    const _mouse = new Vector2();
+    const _offset = new Vector3();
+    const _intersection = new Vector3();
+    const _worldPosition = new Vector3();
+    const _inverseMatrix = new Matrix4();
+    const _intersections = [];
 
-	var _mouse = new Vector2();
-	var _offset = new Vector3();
-	var _intersection = new Vector3();
-	var _worldPosition = new Vector3();
-	var _inverseMatrix = new Matrix4();
-	var _intersections = [];
+    let _selected = null; let
+        _hovered = null;
 
-	var _selected = null, _hovered = null;
+    //
 
-	//
+    const scope = this;
 
-	var scope = this;
+    function activate() {
+        _domElement.addEventListener('mousemove', onDocumentMouseMove, false);
+        _domElement.addEventListener('mousedown', onDocumentMouseDown, false);
+        _domElement.addEventListener('mouseup', onDocumentMouseCancel, false);
+        _domElement.addEventListener('mouseleave', onDocumentMouseCancel, false);
+        // _domElement.addEventListener('touchmove', onDocumentTouchMove, false);
+        // _domElement.addEventListener('touchstart', onDocumentTouchStart, false);
+        // _domElement.addEventListener('touchend', onDocumentTouchEnd, false);
+    }
 
-	function activate() {
+    function deactivate() {
+        _domElement.removeEventListener('mousemove', onDocumentMouseMove, false);
+        _domElement.removeEventListener('mousedown', onDocumentMouseDown, false);
+        _domElement.removeEventListener('mouseup', onDocumentMouseCancel, false);
+        _domElement.removeEventListener('mouseleave', onDocumentMouseCancel, false);
+        // _domElement.removeEventListener('touchmove', onDocumentTouchMove, false);
+        // _domElement.removeEventListener('touchstart', onDocumentTouchStart, false);
+        // _domElement.removeEventListener('touchend', onDocumentTouchEnd, false);
 
-		_domElement.addEventListener( 'mousemove', onDocumentMouseMove, false );
-		_domElement.addEventListener( 'mousedown', onDocumentMouseDown, false );
-		_domElement.addEventListener( 'mouseup', onDocumentMouseCancel, false );
-		_domElement.addEventListener( 'mouseleave', onDocumentMouseCancel, false );
-		_domElement.addEventListener( 'touchmove', onDocumentTouchMove, false );
-		_domElement.addEventListener( 'touchstart', onDocumentTouchStart, false );
-		_domElement.addEventListener( 'touchend', onDocumentTouchEnd, false );
+        _domElement.style.cursor = '';
+    }
 
-	}
+    function dispose() {
+        deactivate();
+    }
 
-	function deactivate() {
+    function getObjects() {
+        return _objects;
+    }
 
-		_domElement.removeEventListener( 'mousemove', onDocumentMouseMove, false );
-		_domElement.removeEventListener( 'mousedown', onDocumentMouseDown, false );
-		_domElement.removeEventListener( 'mouseup', onDocumentMouseCancel, false );
-		_domElement.removeEventListener( 'mouseleave', onDocumentMouseCancel, false );
-		_domElement.removeEventListener( 'touchmove', onDocumentTouchMove, false );
-		_domElement.removeEventListener( 'touchstart', onDocumentTouchStart, false );
-		_domElement.removeEventListener( 'touchend', onDocumentTouchEnd, false );
+    function onDocumentMouseMove(event) {
+        event.preventDefault();
 
-		_domElement.style.cursor = '';
+        const rect = _domElement.getBoundingClientRect();
 
-	}
+        _mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        _mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
-	function dispose() {
+        _raycaster.setFromCamera(_mouse, _camera);
 
-		deactivate();
+        if (_selected && scope.enabled) {
+            if (_raycaster.ray.intersectPlane(_plane, _intersection)) {
+                _selected.position.copy(_intersection.sub(_offset).applyMatrix4(_inverseMatrix));
+            }
 
-	}
+            scope.dispatchEvent({ type: 'drag', object: _selected });
 
-	function getObjects() {
+            return;
+        }
 
-		return _objects;
+        _intersections.length = 0;
 
-	}
+        _raycaster.setFromCamera(_mouse, _camera);
+        _raycaster.intersectObjects(_objects, true, _intersections);
 
-	function onDocumentMouseMove( event ) {
+        if (_intersections.length > 0) {
+            const object = _intersections[0].object;
 
-		event.preventDefault();
+            _plane.setFromNormalAndCoplanarPoint(_camera.getWorldDirection(_plane.normal), _worldPosition.setFromMatrixPosition(object.matrixWorld));
 
-		var rect = _domElement.getBoundingClientRect();
+            if (_hovered !== object) {
+                scope.dispatchEvent({ type: 'hoveron', object });
 
-		_mouse.x = ( ( event.clientX - rect.left ) / rect.width ) * 2 - 1;
-		_mouse.y = - ( ( event.clientY - rect.top ) / rect.height ) * 2 + 1;
+                _domElement.style.cursor = 'pointer';
+                _hovered = object;
+            }
+        } else if (_hovered !== null) {
+            scope.dispatchEvent({ type: 'hoveroff', object: _hovered });
 
-		_raycaster.setFromCamera( _mouse, _camera );
+            _domElement.style.cursor = 'auto';
+            _hovered = null;
+        }
+    }
 
-		if ( _selected && scope.enabled ) {
-            console.log('物体被选中');
+    function onDocumentMouseDown(event) {
+        event.preventDefault();
 
-            // _intersection 鼠标和平面的交点
-			if ( _raycaster.ray.intersectPlane( _plane, _intersection ) ) {
-                // console.log('看看这是啥');
-                // console.log(_inverseMatrix);
-                // console.log(_intersection.sub( _offset ).applyMatrix4( _inverseMatrix ));
-				_selected.position.copy( _intersection.sub( _offset ) ).applyMatrix4( _inverseMatrix );
-			}
-			scope.dispatchEvent( { type: 'drag', object: _selected } );
-			return;
-		}
+        _intersections.length = 0;
 
-		_intersections.length = 0;
+        _raycaster.setFromCamera(_mouse, _camera);
+        _raycaster.intersectObjects(_objects, true, _intersections);
 
-		_raycaster.setFromCamera( _mouse, _camera );
-		_raycaster.intersectObjects( _objects, true, _intersections );
+        if (_intersections.length > 0) {
+            _selected = (scope.transformGroup === true) ? _objects[0] : _intersections[0].object;
 
-		if ( _intersections.length > 0 ) {
+            if (_raycaster.ray.intersectPlane(_plane, _intersection)) {
+                _inverseMatrix.getInverse(_selected.parent.matrixWorld);
+                _offset.copy(_intersection).sub(_worldPosition.setFromMatrixPosition(_selected.matrixWorld));
+            }
 
-			var object = _intersections[ 0 ].object;
-            // 确定一个平面 通过选中物体的position 和相机的朝向为法向
-            // 平面在不断的改变
-			_plane.setFromNormalAndCoplanarPoint( _camera.getWorldDirection( _plane.normal ), _worldPosition.setFromMatrixPosition( object.matrixWorld ) );
+            _domElement.style.cursor = 'move';
 
-			if ( _hovered !== object ) {
-                // console.log('未悬浮在当前选中物体上时触发');
-                // 改变鼠标指针 通知鼠标悬浮物体
-				scope.dispatchEvent( { type: 'hoveron', object: object } );
-				_domElement.style.cursor = 'pointer';
-				_hovered = object;
+            scope.dispatchEvent({ type: 'dragstart', object: _selected });
+        }
+    }
 
-			}
-		} else {
-            console.log('未拾取到任何物体');
-			if ( _hovered !== null ) {
-				scope.dispatchEvent( { type: 'hoveroff', object: _hovered } );
-				_domElement.style.cursor = 'auto';
-				_hovered = null;
-			}
-		}
-	}
+    function onDocumentMouseCancel(event) {
+        event.preventDefault();
 
-	function onDocumentMouseDown( event ) {
+        if (_selected) {
+            scope.dispatchEvent({ type: 'dragend', object: _selected });
 
-		event.preventDefault();
+            _selected = null;
+        }
 
-		_intersections.length = 0;
+        _domElement.style.cursor = _hovered ? 'pointer' : 'auto';
+    }
 
-		_raycaster.setFromCamera( _mouse, _camera );
-		_raycaster.intersectObjects( _objects, true, _intersections );
+    activate();
 
-		if ( _intersections.length > 0 ) {
+    // API
 
-			_selected = ( scope.transformGroup === true ) ? _objects[ 0 ] : _intersections[ 0 ].object;
-            // 鼠标按下 拾取到物体
-			if ( _raycaster.ray.intersectPlane( _plane, _intersection ) ) {
-                // 逆矩阵设置为选中物体的父物体的matrixWorld
-                console.log(_selected.parent.matrixWorld);
-				_inverseMatrix.getInverse( _selected.parent.matrixWorld );
-                // console.log( _worldPosition.setFromMatrixPosition( _selected.matrixWorld ));
-                // 计算当前点击的点和物体中心的偏移量
-				_offset.copy( _intersection ).sub( _worldPosition.setFromMatrixPosition( _selected.matrixWorld ) );
-                // console.log(_offset);
-			}
+    this.enabled = true;
+    this.transformGroup = false;
 
-			_domElement.style.cursor = 'move';
-
-			scope.dispatchEvent( { type: 'dragstart', object: _selected } );
-
-		}
-
-
-	}
-
-	function onDocumentMouseCancel( event ) {
-
-		event.preventDefault();
-
-		if ( _selected ) {
-
-			scope.dispatchEvent( { type: 'dragend', object: _selected } );
-
-			_selected = null;
-
-		}
-
-		_domElement.style.cursor = _hovered ? 'pointer' : 'auto';
-
-	}
-
-	function onDocumentTouchMove( event ) {
-
-		event.preventDefault();
-		event = event.changedTouches[ 0 ];
-
-		var rect = _domElement.getBoundingClientRect();
-
-		_mouse.x = ( ( event.clientX - rect.left ) / rect.width ) * 2 - 1;
-		_mouse.y = - ( ( event.clientY - rect.top ) / rect.height ) * 2 + 1;
-
-		_raycaster.setFromCamera( _mouse, _camera );
-
-		if ( _selected && scope.enabled ) {
-
-			if ( _raycaster.ray.intersectPlane( _plane, _intersection ) ) {
-				_selected.position.copy( _intersection.sub( _offset ).applyMatrix4( _inverseMatrix ) );
-
-			}
-
-			scope.dispatchEvent( { type: 'drag', object: _selected } );
-
-			return;
-
-		}
-
-	}
-
-	function onDocumentTouchStart( event ) {
-
-		event.preventDefault();
-		event = event.changedTouches[ 0 ];
-
-		var rect = _domElement.getBoundingClientRect();
-
-		_mouse.x = ( ( event.clientX - rect.left ) / rect.width ) * 2 - 1;
-		_mouse.y = - ( ( event.clientY - rect.top ) / rect.height ) * 2 + 1;
-
-		_intersections.length = 0;
-
-		_raycaster.setFromCamera( _mouse, _camera );
-		 _raycaster.intersectObjects( _objects, true, _intersections );
-
-		if ( _intersections.length > 0 ) {
-
-			_selected = ( scope.transformGroup === true ) ? _objects[ 0 ] : _intersections[ 0 ].object;
-
-			_plane.setFromNormalAndCoplanarPoint( _camera.getWorldDirection( _plane.normal ), _worldPosition.setFromMatrixPosition( _selected.matrixWorld ) );
-
-			if ( _raycaster.ray.intersectPlane( _plane, _intersection ) ) {
-
-				_inverseMatrix.getInverse( _selected.parent.matrixWorld );
-				_offset.copy( _intersection ).sub( _worldPosition.setFromMatrixPosition( _selected.matrixWorld ) );
-
-			}
-
-			_domElement.style.cursor = 'move';
-
-			scope.dispatchEvent( { type: 'dragstart', object: _selected } );
-
-		}
-
-
-	}
-
-	function onDocumentTouchEnd( event ) {
-
-		event.preventDefault();
-
-		if ( _selected ) {
-
-			scope.dispatchEvent( { type: 'dragend', object: _selected } );
-
-			_selected = null;
-
-		}
-
-		_domElement.style.cursor = 'auto';
-
-	}
-
-	activate();
-
-	// API
-
-	this.enabled = true;
-	this.transformGroup = false;
-
-	this.activate = activate;
-	this.deactivate = deactivate;
-	this.dispose = dispose;
-	this.getObjects = getObjects;
-
+    this.activate = activate;
+    this.deactivate = deactivate;
+    this.dispose = dispose;
+    this.getObjects = getObjects;
 };
 
-DragControls.prototype = Object.create( EventDispatcher.prototype );
+DragControls.prototype = Object.create(EventDispatcher.prototype);
 DragControls.prototype.constructor = DragControls;
 
 export { DragControls };

@@ -21,7 +21,7 @@ export default {
 };
 </script>
 <style lang='scss' scoped>
-.yt-three{
+.yt-three {
     width: 100%;
     height: 100%;
 }
