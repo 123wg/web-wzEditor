@@ -1,9 +1,13 @@
 <template>
-    <div class='yt-three' id="yt-three"></div>
+    <div
+        id="yt-three"
+        class="yt-three"
+    ></div>
 </template>
 
 <script lang="ts">
 import Cad from '@/study/test/testDrag';
+
 export default {
     computed: {},
     watch: {},
