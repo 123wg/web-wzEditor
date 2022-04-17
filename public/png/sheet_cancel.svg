@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 22 22">
+  <defs>
+    <style>
+      .cls-1 {
+        opacity: 0.8;
+      }
+
+      .cls-2, .cls-3, .cls-5 {
+        fill: none;
+      }
+
+      .cls-2, .cls-3 {
+        stroke: #bebebe;
+      }
+
+      .cls-2 {
+        stroke-linecap: round;
+      }
+
+      .cls-3 {
+        stroke-linejoin: round;
+      }
+
+      .cls-4 {
+        stroke: none;
+      }
+    </style>
+  </defs>
+  <g id="sheet_cancel" transform="translate(-1.73 -1.393)">
+    <g id="组件_2_314" data-name="组件 2 – 314" class="cls-1" transform="translate(8.73 8.392)">
+      <line id="直线_197" data-name="直线 197" class="cls-2" x2="8" y2="8"/>
+      <line id="直线_198" data-name="直线 198" class="cls-2" x1="8" y2="8"/>
+    </g>
+    <g id="椭圆_308" data-name="椭圆 308" class="cls-3" transform="translate(1.73 1.393)">
+      <circle class="cls-4" cx="11" cy="11" r="11"/>
+      <circle class="cls-5" cx="11" cy="11" r="10.5"/>
+    </g>
+  </g>
+</svg>

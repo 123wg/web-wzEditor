@@ -1,5 +1,8 @@
 <template>
-    <div class='editor-main' id="editor-main"></div>
+    <div
+        id="editor-main"
+        class="editor-main"
+    ></div>
 </template>
 
 <script>
@@ -23,7 +26,7 @@ export default {
 };
 </script>
 <style lang='scss' scoped>
-.editor-main{
+.editor-main {
     width: 100%;
     height: 100%;
 }

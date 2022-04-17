@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { OrthographicCamera, Vector3 } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 
 export default class BaseCad {
@@ -8,7 +9,8 @@ export default class BaseCad {
 
     scene: THREE.Scene;
 
-    camera: THREE.PerspectiveCamera;
+    // camera: THREE.PerspectiveCamera;
+    camera:THREE.OrthographicCamera
 
     controls: OrbitControls;
 
@@ -27,10 +29,20 @@ export default class BaseCad {
     }
 
     init_camera() {
-        const { width, height } = this.size;
-        this.camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
-        this.camera.position.set(-30, 40, 30);
-        this.camera.lookAt(0, 0, 0);
+        // const { width, height } = this.size;
+        // this.camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+        // this.camera.position.set(-30, 40, 30);
+        // this.camera.lookAt(0, 0, 0);
+        const frustumSize = 150;
+        const aspect = window.innerWidth / window.innerHeight;
+        this.camera = new OrthographicCamera(
+            frustumSize * aspect / -2, frustumSize * aspect / 2, frustumSize / 2, frustumSize / -2, 0.1, 1000,
+        );
+        this.camera.up.set(0, 1, 0);
+        this.camera.position.set(10, 10, 100);
+        this.camera.lookAt(new Vector3(0, 0, 0));
+
+        // this.scene.add(this.camera);
     }
 
     init_light() {
@@ -79,7 +91,7 @@ export default class BaseCad {
             this.get_dom();
             const { width, height } = this.size;
             this.renderer.setSize(width, height);
-            this.camera.aspect = width / height;
+            // this.camera.aspect = width / height;
             this.camera.updateProjectionMatrix();
         };
         window.addEventListener('resize', resizeFun, false);

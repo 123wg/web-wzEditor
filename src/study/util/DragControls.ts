@@ -9,7 +9,7 @@ import {
 } from 'three';
 import * as THREE from 'three';
 
-export default class DragControlNew extends EventDispatcher {
+export default class DragControl extends EventDispatcher {
     private dragObjects:THREE.Object3D[]; // 可以拖拽的物体
 
     private camera:THREE.Camera; // 相机
@@ -122,6 +122,4 @@ export default class DragControlNew extends EventDispatcher {
             this.selected = null;
         }
     }
-
-    /* 鼠标抬起事件 */
 }

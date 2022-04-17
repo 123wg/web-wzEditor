@@ -6,7 +6,7 @@ import * as THREE from 'three';
 * @Author: wanggang
 * @Date: 2022-03-20 16:52:57
 * */
-export default class ManipulatorArrowControl extends THREE.ArrowHelper {
+export default class CArrow extends THREE.ArrowHelper {
     _cyliderHeight = 0.5
 
     cylinder: THREE.Mesh;
@@ -36,7 +36,7 @@ export default class ManipulatorArrowControl extends THREE.ArrowHelper {
 
         const lineGeo = new CylinderBufferGeometry(0.16, 0.16, 1, radialSegments, 1);
         this.cylinder = new THREE.Mesh(lineGeo, coneMaterial);
-        this.cylinder.position.y=this._cyliderHeight * 1
+        this.cylinder.position.y = this._cyliderHeight * 1;
         this.cylinder.updateMatrix();
 
         this.add(this.cylinder);

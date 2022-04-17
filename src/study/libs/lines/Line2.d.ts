@@ -4,7 +4,8 @@ import { LineMaterial } from './LineMaterial';
 import { LineSegmentsGeometry } from './LineSegmentsGeometry';
 
 export class Line2 extends LineSegments2 {
-    constructor(geometry?: LineGeometry | LineSegmentsGeometry, material?: LineMaterial);
 
+	constructor( geometry?: LineGeometry | LineSegmentsGeometry, material?: LineMaterial );
 	readonly isLine2: true;
+
 }
